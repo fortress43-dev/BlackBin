@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "D_GroundButton.h"
 
 // Sets default values
@@ -15,13 +14,11 @@ AD_GroundButton::AD_GroundButton()
 void AD_GroundButton::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
 void AD_GroundButton::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
