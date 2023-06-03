@@ -1,10 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
-#include "D_MyCpp.h"
+#include "D_GroundButton.h"
 
 // Sets default values
-AD_MyCpp::AD_MyCpp()
+AD_GroundButton::AD_GroundButton()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -12,16 +11,14 @@ AD_MyCpp::AD_MyCpp()
 }
 
 // Called when the game starts or when spawned
-void AD_MyCpp::BeginPlay()
+void AD_GroundButton::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
-void AD_MyCpp::Tick(float DeltaTime)
+void AD_GroundButton::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
