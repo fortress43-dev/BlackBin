@@ -3,8 +3,10 @@
 
 #include "D_Crystal.h"
 #include "Components/BoxComponent.h"
-#include"Components/StaticMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Materials/MaterialInterface.h"
+#include "Kismet/GameplayStatics.h"
+#include "NiagaraFunctionLibrary.h"
 
 // Sets default values
 AD_Crystal::AD_Crystal()
@@ -42,8 +44,15 @@ void AD_Crystal::NotifyActorBeginOverlap(AActor* OtherActor) {
 	Super::NotifyActorBeginOverlap(OtherActor);
 	// 빛을 밝힌다
 	isShine = true;
-
+	
 	// 이펙트가 실행된다
+	FVector EffectLocation = GetActorLocation();
+	if (NS_CrystalEffect) {
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), NS_CrystalEffect, EffectLocation);
+	}
+	if (SB_CrystalSound) {
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SB_CrystalSound, EffectLocation, FRotator::ZeroRotator);
+	}
 	// 다른 라이트 베리어를 자신의 위치에 스폰한다. 하지만 사이즈는 1/2
 	
 }
