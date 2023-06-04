@@ -59,7 +59,9 @@ void AD_Crystal::NotifyActorBeginOverlap(AActor* OtherActor) {
 
 void AD_Crystal::ShineCrystal() {
 	float blend = 0.5f + FMath::Cos(curTime*2);
+	float emissive = FMath::Cos(curTime * 2);
 	DynamicMaterial->SetScalarParameterValue(TEXT("Blend"), blend);
+	DynamicMaterial->SetScalarParameterValue(TEXT("Emissive"), emissive);
 	if (curTime > 100) curTime = 0;
 
 }
