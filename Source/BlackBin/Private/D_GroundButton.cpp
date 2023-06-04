@@ -1,6 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "D_GroundButton.h"
+#include "DebugMessages.h"
+
+#include "LevelSequenceActor.h"
+#include "LevelSequencePlayer.h"
+#include "MovieSceneSequencePlayer.h"
+
+#include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AD_GroundButton::AD_GroundButton()
@@ -14,6 +22,11 @@ AD_GroundButton::AD_GroundButton()
 void AD_GroundButton::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void AD_GroundButton::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	Super::NotifyActorBeginOverlap(OtherActor);
 }
 
 // Called every frame
