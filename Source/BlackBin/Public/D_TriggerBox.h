@@ -7,7 +7,9 @@
 #include "GameFramework/Actor.h"
 #include "LevelSequencePlayer.h"
 #include "LevelSequenceActor.h"
+#include "D_LightStatue.h"
 #include "D_TriggerBox.generated.h"
+
 
 UCLASS()
 class BLACKBIN_API AD_TriggerBox : public AActor
@@ -17,6 +19,8 @@ class BLACKBIN_API AD_TriggerBox : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AD_TriggerBox();
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -30,7 +34,15 @@ public:
 
 	UPROPERTY(EditAnywhere)
 		ALevelSequenceActor* animFactory;
+
 	UPROPERTY(EditAnywhere)
-		bool isActive;
+		bool isActive = false;
+
+	UPROPERTY(EditAnywhere)
+		TArray<class AD_LightStatue*> preConditionActors;
+
+private:
+	bool IsPreConditionFulFill();
+		
 
 };

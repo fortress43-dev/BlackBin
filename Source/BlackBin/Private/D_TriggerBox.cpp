@@ -19,7 +19,17 @@ void AD_TriggerBox::BeginPlay()
 	
 }
 
+void AD_TriggerBox::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	isActive = IsPreConditionFulFill();
+}
 
+/// <summary>
+/// play connected Animation with this trigger Actor
+/// </summary>
+/// <param name="overlappedActor"></param>
+/// <param name="otherActor"></param>
 void AD_TriggerBox::PlayAnim(AActor* overlappedActor, AActor* otherActor)
 {
 	print("collided");
@@ -46,3 +56,17 @@ void AD_TriggerBox::PlayAnim(AActor* overlappedActor, AActor* otherActor)
 		}
 	}
 }
+
+bool AD_TriggerBox::IsPreConditionFulFill()
+{
+	// 다형성을 이용해 받아오려고 했는데 연결된 변수를 찾지 못하는 문제가 있네
+	// 여기 수정 필요 false 관계확인하기
+	for (auto& ele : preConditionActors) {
+		if (!ele->isActive) return false;
+	}
+	return true;
+}
+
+// 겹치고 있을때 bool함수
+// 위 조건과 섞어줌
+//=> 발동조건
