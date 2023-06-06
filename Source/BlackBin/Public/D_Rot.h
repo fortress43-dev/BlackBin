@@ -28,21 +28,35 @@ public:
 		AActor* stActor;
 	UPROPERTY(EditAnywhere)
 		AActor* enActor;
-
+	UPROPERTY(EditAnywhere)
+		float speed = 1;
+	UPROPERTY(EditAnywhere)
+		TArray<FVector> posRefList;
+	UPROPERTY(EditAnywhere)
+		int lineResolution = 10;
+	UPROPERTY(EditAnywhere)
+		TArray<FVector> LinePoseList;
 	bool isArrived;
 	float dstVal;
 
-	FVector st;
-	FVector mid;
-	FVector en;
+	FVector st  {-500,0,0};
+	FVector mid {0,0,500};
+	FVector en  {500,0,0};
+
 	AActor* target;
 
-	FVector a1;
-	FVector a2;
+
 
 private:
-	
+		float myDeltaTime;
 		UStaticMeshComponent* rot;
-	
 		UBoxComponent* MyBoxComponent;
+		float curTime = 0;
+		FVector Lerp3Points(FVector st, FVector mid, FVector en, float t);
+		void InitRot();
+
+		void StoreLerpPoints(int);
+		void DrawLerpLine();
 };
+
+
