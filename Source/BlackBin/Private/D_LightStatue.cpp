@@ -24,13 +24,17 @@ void AD_LightStatue::BeginPlay()
 	Cube->SetMaterial(0, DynamicMaterial);
 	
 }
-
+float changeTime;
 // Called every frame
 void AD_LightStatue::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	isActive = IsAllCrystalShine();
-	if(isActive)
+	if (statueState == normal && isActive) {
+		Change2ShineStatue();
+		curTime += DeltaTime;
+		// Tick밖에서는 deltatime을 쓰는 것을 권장하지 않는다
+	}
 	// is Active : 재질을 바꿔준다
 }
 
@@ -44,8 +48,12 @@ bool AD_LightStatue::IsAllCrystalShine()
 	return true;
 }
 
-void AD_LightStatue::ShineStatue()
-{
 
+void AD_LightStatue::Change2ShineStatue()
+{
+	// 3초동안 재질이 변하는 과정을 겪음
+	float emissive = curTime * lightPower;
+	DynamicMaterial->SetScalarParameterValue(TEXT("Emissive"), emissive);
+	if (curTime > changeTime) { statueState = shine; changeTime = 0; }
 }
 

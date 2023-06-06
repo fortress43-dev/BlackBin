@@ -32,12 +32,23 @@ public:
 	UPROPERTY(EditAnyWhere)
 		bool isActive;
 
+	float curTime;
+	UPROPERTY(EditAnyWhere)
+		float changeTime = 5;
+	UPROPERTY(EditAnyWhere)
+		float lightPower = 2;
+
 private:
 	bool IsAllCrystalShine();
 	// 연결된 다른 물체의 재질에 영향을 주기 않기 위해 dyna-inst만듬
 	UMaterialInstanceDynamic* DynamicMaterial;
+	enum StatueState {
+		normal,
+		shine
+	};
 
-	void ShineStatue();
+	StatueState statueState = normal;
+	void Change2ShineStatue();
 
 
 };
