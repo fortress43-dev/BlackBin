@@ -235,8 +235,8 @@ void AC_Player::Roll()
 		//StateVector = FVector2D(ForVector);
 		State = PLAYERSTATE::ROLL;
 		StateTimer = 5;
-		GetCharacterMovement()->Velocity.X = ForVector.Y;
-		GetCharacterMovement()->Velocity.Y = ForVector.X;
+		GetCharacterMovement()->Velocity.X = ForVector.X;
+		GetCharacterMovement()->Velocity.Y = ForVector.Y;
 	}
 }
 
