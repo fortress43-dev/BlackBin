@@ -39,6 +39,9 @@ public:
 public:
     class ASproutBossPCharacter* player;
 
+    UPROPERTY(EditAnywhere)
+        TSubclassOf<AC_HitBox> HitBoxClass = AC_HitBox::StaticClass();
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float bossIsFar = 800;
 
@@ -68,6 +71,7 @@ public:
     //´ë½¬Áß
     void DASHINGState();
 
+    void SpawnHitBox();
 
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
@@ -79,4 +83,7 @@ private:
     float dt;
     float distance;
     float playerDistance;
+    float ct = 0;
 };
+
+

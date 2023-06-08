@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/Actor.h"
+#include "C_HitBox.h"
 #include <cstdlib>
 
 // Sets default values
@@ -17,6 +18,11 @@ AH_EnemyCharacter::AH_EnemyCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+    static ConstructorHelpers::FObjectFinder<UBlueprint> HitBoxObject(TEXT("/Script/Engine.Blueprint'/Game/CSK/Blueprints/BP_HitBox.BP_HitBox'"));
+    if (HitBoxObject.Object)
+    {
+        HitBoxClass = (UClass*)HitBoxObject.Object->GeneratedClass;
+    }
 
     // Set size for collision capsule
     GetCapsuleComponent()->InitCapsuleSize(42.0f, 96.0f);
@@ -58,7 +64,7 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
     dt = DeltaTime;
-
+    ct += DeltaTime;
     // Find the player character in the world
     ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(this, 0);
     if (PlayerCharacter)
@@ -119,7 +125,7 @@ void AH_EnemyCharacter::ATTACKState()
     dir = FVector::ZeroVector;
 
     //기본공격을 함
-
+    SpawnHitBox();
 
     //거리가 300 이상이되면 DEFAULT 이동을 한다
     if (distance > bossIsClose)
@@ -155,3 +161,32 @@ void AH_EnemyCharacter::DASHINGState()
         bState = EBossState::ATTACK;
     }
 }
+
+void AH_EnemyCharacter::SpawnHitBox()
+{
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.Owner = this;
+
+
+    FRotator rotator = GetActorRotation();
+
+    FVector SpawnLocation = GetActorLocation();
+    FVector addLoc = GetActorForwardVector() * 100;
+    SpawnLocation.Z -= 50.f;
+
+
+    if (ct > 3) {
+        AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
+        if (Hitbox)
+        {
+            Hitbox->lifeTime = 10;
+        }
+        ct = 0;
+    }
+}
+
+
+
+
+
+
