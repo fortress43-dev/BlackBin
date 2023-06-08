@@ -213,6 +213,9 @@ void AC_Player::Attack()
 
 		//MotionWarpComponent->AddOrUpdateWarpTarget(Target);
 		StateVector = FVector2d(FollowCamera->GetComponentRotation().Vector());
+=======
+		StateVector = FVector2d(FollowCamera->GetComponentRotation().Yaw);
+>>>>>>> d7417eea52c41f32455bc48a5408e341714e3ff0
 		Statestep	= 0;
 		State = PLAYERSTATE::ATTACK;
 	}
@@ -237,6 +240,13 @@ void AC_Player::Roll()
 		StateTimer = 5;
 		GetCharacterMovement()->Velocity.X = ForVector.Y;
 		GetCharacterMovement()->Velocity.Y = ForVector.X;
+=======
+		FVector ForVector = GetActorForwardVector()*800;
+		State = PLAYERSTATE::ROLL;
+		StateTimer = 5;
+		GetCharacterMovement()->Velocity.X = ForVector.X;
+		GetCharacterMovement()->Velocity.Y = ForVector.Y;
+>>>>>>> d7417eea52c41f32455bc48a5408e341714e3ff0
 	}
 }
 
