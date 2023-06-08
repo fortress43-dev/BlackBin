@@ -212,6 +212,7 @@ void AC_Player::Attack()
 		//Target.Rotation = TargetActor->GetActorRotation();
 
 		//MotionWarpComponent->AddOrUpdateWarpTarget(Target);
+<<<<<<< HEAD
 		StateVector = FVector2d(FollowCamera->GetComponentRotation().Vector());
 =======
 		StateVector = FVector2d(FollowCamera->GetComponentRotation().Yaw);
@@ -234,6 +235,7 @@ void AC_Player::Roll()
 
 		//MotionWarpComponent->AddOrUpdateWarpTarget(Target);
 		//PlayAnimMontage(RollMontage);
+<<<<<<< HEAD
 		FVector ForVector = FollowCamera->GetComponentRotation().Vector() *800;
 		//StateVector = FVector2D(ForVector);
 		State = PLAYERSTATE::ROLL;
