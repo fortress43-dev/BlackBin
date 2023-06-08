@@ -99,8 +99,8 @@ void AC_Player::Tick(float DeltaTime)
 		{
 			StateReset();
 		}
-		AddMovementInput(StateDirectionX, StateVector.X);
-		AddMovementInput(StateDirectionY, StateVector.Y);
+		AddMovementInput(StateDirectionX, StateVector.Y);
+		AddMovementInput(StateDirectionY, StateVector.X);
 	}
 }
 //////////////////////////////////////////////////////////////////////////
@@ -212,11 +212,7 @@ void AC_Player::Attack()
 		//Target.Rotation = TargetActor->GetActorRotation();
 
 		//MotionWarpComponent->AddOrUpdateWarpTarget(Target);
-<<<<<<< HEAD
 		StateVector = FVector2d(FollowCamera->GetComponentRotation().Vector());
-=======
-		StateVector = FVector2d(FollowCamera->GetComponentRotation().Yaw);
->>>>>>> d7417eea52c41f32455bc48a5408e341714e3ff0
 		Statestep	= 0;
 		State = PLAYERSTATE::ATTACK;
 	}
@@ -235,20 +231,12 @@ void AC_Player::Roll()
 
 		//MotionWarpComponent->AddOrUpdateWarpTarget(Target);
 		//PlayAnimMontage(RollMontage);
-<<<<<<< HEAD
 		FVector ForVector = FollowCamera->GetComponentRotation().Vector() *800;
 		//StateVector = FVector2D(ForVector);
 		State = PLAYERSTATE::ROLL;
 		StateTimer = 5;
 		GetCharacterMovement()->Velocity.X = ForVector.Y;
 		GetCharacterMovement()->Velocity.Y = ForVector.X;
-=======
-		FVector ForVector = GetActorForwardVector()*800;
-		State = PLAYERSTATE::ROLL;
-		StateTimer = 5;
-		GetCharacterMovement()->Velocity.X = ForVector.X;
-		GetCharacterMovement()->Velocity.Y = ForVector.Y;
->>>>>>> d7417eea52c41f32455bc48a5408e341714e3ff0
 	}
 }
 

@@ -8,11 +8,7 @@ public class BlackBin : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-<<<<<<< HEAD
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Niagara", "LevelSequence", "HeadMountedDisplay", "EnhancedInput", "UMG" });
-=======
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Niagara", "LevelSequence", "EnhancedInput", "HeadMountedDisplay" });
->>>>>>> d7417eea52c41f32455bc48a5408e341714e3ff0
 
 		PrivateDependencyModuleNames.AddRange(new string[] {"MovieScene"  });
 
