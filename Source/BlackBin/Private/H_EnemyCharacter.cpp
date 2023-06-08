@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "EnemyCharacter.h"
+#include "H_EnemyCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "EngineUtils.h"
@@ -9,12 +9,15 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/Actor.h"
-#include "HitBox.h" // HitBox 액터 헤더 파일을 포함해야 합니다.
 #include <cstdlib>
 
 // Sets default values
-AEnemyCharacter::AEnemyCharacter()
+AH_EnemyCharacter::AH_EnemyCharacter()
 {
+ 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+
     // Set size for collision capsule
     GetCapsuleComponent()->InitCapsuleSize(42.0f, 96.0f);
 
@@ -39,26 +42,20 @@ AEnemyCharacter::AEnemyCharacter()
     moveSpeed = 300.0f; // Adjust the value as needed
     dashSpeed = 2000.0f; // Adjust the value as needed
 
-    
+
 }
-
-
 
 // Called when the game starts or when spawned
-void AEnemyCharacter::BeginPlay()
+void AH_EnemyCharacter::BeginPlay()
 {
-    Super::BeginPlay();
-    
-    
-
-
+	Super::BeginPlay();
+	
 }
+
 // Called every frame
-void AEnemyCharacter::Tick(float DeltaTime)
+void AH_EnemyCharacter::Tick(float DeltaTime)
 {
-    Super::Tick(DeltaTime);
-   
-    
+	Super::Tick(DeltaTime);
 
     dt = DeltaTime;
 
@@ -73,52 +70,35 @@ void AEnemyCharacter::Tick(float DeltaTime)
         PlayerLoc = playerLocation;
         EnemyLoc = enemyLocation;
 
-        /*if (distance > 400.0f)
+        // Update the state
+        switch (bState)
         {
-            // Dash towards the player character
-            dir = playerLocation - enemyLocation;
-            dir.Normalize();
-            FVector newLocation = GetActorLocation() + dir * dashSpeed * dt;
-            SetActorLocation(newLocation);
+        case EBossState::DEFAULT:
+            DEFAULTState();
+            break;
+        case EBossState::ATTACK:
+            ATTACKState();
+            break;
+        case EBossState::DODASH:
+            DODASHState();
+            break;
+        case EBossState::DASHING:
+            DASHINGState();
+            break;
+        default:
+            break;
         }
-        else if (distance > 50.0f)
-        {
-            // Move slowly towards the player character
-            dir = playerLocation - enemyLocation;
-            dir.Normalize();
-            FVector newLocation = GetActorLocation() + dir * moveSpeed * dt;
-            SetActorLocation(newLocation);
-        }
-        else
-        {
-            // Stay idle
-            dir = FVector::ZeroVector;
-        }
-        */
-    }
-
-    // Update the state
-    switch (bState)
-    {
-    case EBossState::DEFAULT:
-        DEFAULTState();
-        break;
-    case EBossState::ATTACK:
-        ATTACKState();
-        break;
-    case EBossState::DODASH:
-        DODASHState();
-        break;
-    case EBossState::DASHING:
-        DASHINGState();
-        break;
-    default:
-        break;
     }
 }
 
+// Called to bind functionality to input
+void AH_EnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-void AEnemyCharacter::DEFAULTState()
+}
+
+void AH_EnemyCharacter::DEFAULTState()
 {
     dir = PlayerLoc - EnemyLoc;
     dir.Normalize();
@@ -128,25 +108,25 @@ void AEnemyCharacter::DEFAULTState()
     if (distance < bossIsClose) {
         bState = EBossState::ATTACK;
     }
-    else if(distance > bossIsFar){
+    else if (distance > bossIsFar) {
         bState = EBossState::DODASH;
     }
 }
 
-void AEnemyCharacter::ATTACKState()
+void AH_EnemyCharacter::ATTACKState()
 {
     // Stay idle, do nothing
     dir = FVector::ZeroVector;
 
     //기본공격을 함
-    
-   
-    //거리가 300 이상이되면 DEFAULT 이동을 한다
-    if(distance > bossIsClose)
-        bState = EBossState::DEFAULT;
-}       
 
-void AEnemyCharacter::DODASHState()
+
+    //거리가 300 이상이되면 DEFAULT 이동을 한다
+    if (distance > bossIsClose)
+        bState = EBossState::DEFAULT;
+}
+
+void AH_EnemyCharacter::DODASHState()
 {
     // Dash towards the player character
     dir = PlayerLoc - EnemyLoc;
@@ -161,9 +141,9 @@ void AEnemyCharacter::DODASHState()
     }
 }
 
-void AEnemyCharacter::DASHINGState()
+void AH_EnemyCharacter::DASHINGState()
 {
-    
+
 
     // Move towards the player character
     dir = PlayerLoc - EnemyLoc;
@@ -175,4 +155,3 @@ void AEnemyCharacter::DASHINGState()
         bState = EBossState::ATTACK;
     }
 }
-
