@@ -50,12 +50,15 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float dashSpeed;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        float bossStanceMode = 1600.0f;
 
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = FSM)
         EBossState bState = EBossState::DEFAULT;
 
 
+    
     //기본 이동상태
     void DEFAULTState();
     //대쉬 상태
@@ -75,4 +78,5 @@ private:
     FVector dir; // Movement direction
     float dt;
     float distance;
+    float playerDistance;
 };

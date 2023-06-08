@@ -98,6 +98,8 @@ void AH_EnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 }
 
+
+
 void AH_EnemyCharacter::DEFAULTState()
 {
     dir = PlayerLoc - EnemyLoc;
@@ -108,9 +110,7 @@ void AH_EnemyCharacter::DEFAULTState()
     if (distance < bossIsClose) {
         bState = EBossState::ATTACK;
     }
-    else if (distance > bossIsFar) {
-        bState = EBossState::DODASH;
-    }
+    
 }
 
 void AH_EnemyCharacter::ATTACKState()
