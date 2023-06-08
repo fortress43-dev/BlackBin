@@ -99,8 +99,8 @@ void AC_Player::Tick(float DeltaTime)
 		{
 			StateReset();
 		}
-		AddMovementInput(StateDirectionX, StateVector.X);
-		AddMovementInput(StateDirectionY, StateVector.Y);
+		AddMovementInput(StateDirectionX, StateVector.Y);
+		AddMovementInput(StateDirectionY, StateVector.X);
 	}
 }
 //////////////////////////////////////////////////////////////////////////
