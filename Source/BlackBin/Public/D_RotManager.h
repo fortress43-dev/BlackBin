@@ -26,9 +26,20 @@ public:
 public:
 	int rotLevel;
 	TArray<AActor*> rots;
+
 	enum RotState {
 		guide, attack, healing, moveHeavy
 	};
 
+	RotState rotState = guide;
+	enum RotAttackState {
+		onGoing, circleMove, Explosion
+	};
 
+	void StateMachine();
+
+	// basic rotAction
+	void Guide();
+	void Attack();
+	void MoveHeavy();
 };

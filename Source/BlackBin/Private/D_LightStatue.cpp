@@ -29,7 +29,9 @@ float changeTime;
 void AD_LightStatue::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 	isActive = IsAllCrystalShine();
+
 	if (statueState == normal && isActive) {
 		Change2ShineStatue();
 		curTime += DeltaTime;
@@ -42,8 +44,8 @@ bool AD_LightStatue::IsAllCrystalShine()
 {
 	// 이 함수는 나중에 크리스탈이 액티브될 때만 불려야 연산에 좋다
 	for (auto& ele : crystals) {
-		if (!ele->isShine) { print("not all crystal is shining"); return false; }
-		else { print("All crystal is shining") }
+		if (!ele->isShine) { return false; }
+		
 	}
 	return true;
 }
@@ -54,6 +56,6 @@ void AD_LightStatue::Change2ShineStatue()
 	// 3초동안 재질이 변하는 과정을 겪음
 	float emissive = curTime * lightPower;
 	DynamicMaterial->SetScalarParameterValue(TEXT("Emissive"), emissive);
-	if (curTime > changeTime) { statueState = shine; changeTime = 0; }
+	if (curTime > changeTime) { statueState = shine; print("Statue is shining"); changeTime = 0; }
 }
 

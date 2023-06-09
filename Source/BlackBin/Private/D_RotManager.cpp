@@ -22,6 +22,19 @@ void AD_RotManager::BeginPlay()
 void AD_RotManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	// rot 공격 키를 누르면 rot의 상태가 공격으로 전환
+	// rot 가 목적지를 향해서 날아감
+	// 목적지에 다다르면 원운동을 한다
+	// 다시 키를 누르면 폭발한다
+	// rot는 공중으로 날아가며 2초간 넉다운 상태에 빠진다
+
+	
+
+
+}
+
+void AD_RotManager::StateMachine()
+{
 
 }
 

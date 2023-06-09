@@ -29,6 +29,7 @@ protected:
 
 public:
 
+
 	UFUNCTION()
 		void PlayAnim(class AActor* overlappedActor, class AActor* otherActor);
 

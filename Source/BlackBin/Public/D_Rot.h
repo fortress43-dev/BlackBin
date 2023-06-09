@@ -23,44 +23,13 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	
-	UPROPERTY(EditAnywhere)
-		AActor* stActor;
-	UPROPERTY(EditAnywhere)
-		AActor* enActor;
-	UPROPERTY(EditAnywhere)
-		float speed = 1;
-	UPROPERTY(EditAnywhere)
-		TArray<FVector> posRefList{ {500,0,500},{250,0,-500},{0,0,500},{-250,0,-500},{-500,0,500} };
-	UPROPERTY(EditAnywhere)
-		int lineResolution = 5;
-	UPROPERTY(EditAnywhere)
-		TArray<FVector> LinePoseList;
-	bool isArrived;
-	float dstVal;
-
-	UPROPERTY(EditAnywhere)
-	FVector st  {-500,0,0};
-	UPROPERTY(EditAnywhere)
-	FVector mid {0,0,500};
-	UPROPERTY(EditAnywhere)
-	FVector en  {500,0,0};
 
 	AActor* target;
 
 
 
 private:
-		float myDeltaTime;
-		UStaticMeshComponent* rot;
-		UBoxComponent* MyBoxComponent;
-		float curTime = 0;
-		FVector Lerp3Points(FVector st, FVector mid, FVector en, float t);
-		void InitRot();
 
-		void StoreLerpPoints(int);
-		void DrawLerpLine();
-		void DrawGuideLine();
 };
 
 
