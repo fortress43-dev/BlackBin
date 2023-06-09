@@ -14,7 +14,10 @@ enum class PLAYERSTATE
 	MOVEMENT,
 	ATTACK,
 	ROLL,
-	POWERATTACK
+	BARRIER,
+	ARROW,
+	POWERATTACK,
+	POWERCHARGING
 };
 
 UCLASS()
@@ -62,6 +65,9 @@ class BLACKBIN_API AC_Player : public AC_Mob
 		class UInputAction* BarrierAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* ArrowAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* AttackMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -96,6 +102,8 @@ protected:
 	int Statestep		= 0;
 	virtual void Tick(float DeltaTime) override;
 	/** Called for movement input */
+	virtual void Jump() override;
+
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
@@ -108,15 +116,19 @@ protected:
 	void BarrierEnd();
 
 	void Attack();
-
 	void PowerAttackStart();
 	void PowerAttackEnd();
+	void ArrowStart();
+	void ArrowEnd();
 	void Roll();
 
 	void StateReset();
+	void StateArrow();
 	void StateAttack();
 	void StatePowerAttack();
+	void StateBarrier();
 	void StateRoll();
+	void StatePowerCharging();
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

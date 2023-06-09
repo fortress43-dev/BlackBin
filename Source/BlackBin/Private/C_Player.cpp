@@ -101,6 +101,15 @@ void AC_Player::Tick(float DeltaTime)
 			case PLAYERSTATE::POWERATTACK:
 				StatePowerAttack();
 			break;
+			case PLAYERSTATE::ARROW:
+				StateArrow();
+			break;
+			case PLAYERSTATE::POWERCHARGING:
+				StatePowerCharging();
+			break;
+			case PLAYERSTATE::BARRIER:
+				StateBarrier();
+			break;
 		}
 		if (Statestep == 100)
 		{
@@ -139,11 +148,18 @@ void AC_Player::SetupPlayerInputComponent(class UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(PowerAttackAction, ETriggerEvent::Triggered, this, &AC_Player::PowerAttackStart);
 		EnhancedInputComponent->BindAction(PowerAttackAction, ETriggerEvent::Completed, this, &AC_Player::PowerAttackEnd);
 
+		EnhancedInputComponent->BindAction(ArrowAction, ETriggerEvent::Triggered, this, &AC_Player::ArrowStart);
+		EnhancedInputComponent->BindAction(ArrowAction, ETriggerEvent::Completed, this, &AC_Player::ArrowEnd);
+
 		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Triggered, this, &AC_Player::Roll);
 	}
 
 }
-
+void AC_Player::Jump()
+{
+	if(State == PLAYERSTATE::MOVEMENT)
+			Super::Jump();
+}
 void AC_Player::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -296,16 +312,31 @@ void AC_Player::Roll()
 	}
 }
 
+void AC_Player::ArrowStart()
+{
+	CameraBoom->TargetArmLength = 200.0f;
+}
+void AC_Player::ArrowEnd()
+{
+	CameraBoom->TargetArmLength = 400.0f;
+}
+
 void AC_Player::PowerAttackStart()
 {
 	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT)
 	{
+		State = PLAYERSTATE::POWERCHARGING;
+		Statestep = 0;
+		StateTimer = 0;
 		gagePower = FMath::Clamp(gagePower + .5, 0, 100);
+		GetCharacterMovement()->MaxWalkSpeed = 0;
+		GetCharacterMovement()->RotationRate = FRotator(0.0f, 700.0f, 0.0f); // ...at this rotation rate
+
 	}
 }
 void AC_Player::PowerAttackEnd()
 {
-	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT)
+	if (Controller != nullptr && State == PLAYERSTATE::POWERCHARGING)
 	{
 		State = PLAYERSTATE::POWERATTACK;
 		StateTimer = 0;
@@ -322,7 +353,12 @@ void AC_Player::BarrierStart()
 		FRotator rotator;
 		FVector  SpawnLocation = GetActorLocation();
 		//SpawnLocation.Z += 1050.0f;
-
+		State = PLAYERSTATE::BARRIER;
+		Statestep = 0;
+		StateTimer = 0;
+		GetCharacterMovement()->Velocity.X = 0;
+		GetCharacterMovement()->Velocity.Y = 0;
+		StateVector = FVector2D(0);
 		Barrier = GetWorld()->SpawnActor<AC_Barrier>(BarrierClass, SpawnLocation, rotator, SpawnParams);
 		if (Barrier)
 		{
@@ -336,6 +372,7 @@ void AC_Player::BarrierEnd()
 	if (Controller != nullptr)
 	{
 		Barrier->IsBoom = true;
+		State = PLAYERSTATE::MOVEMENT;
 	}
 }
 
@@ -422,11 +459,47 @@ void AC_Player::StateRoll()
 
 	}
 }
+void AC_Player::StateBarrier()
+{
+	
+}
+void AC_Player::StateArrow()
+{
+
+}
+void AC_Player::StatePowerCharging()
+{
+	switch (Statestep)
+	{
+	case 0:
+		if (StateTimer++ < 10)
+			break;
+		GetCharacterMovement()->RotationRate = FRotator(0.0f, 100.0f, 0.0f); // ...at this rotation rate
+		StateTimer = 0;
+		Statestep++;
+		break;
+	}
+	FVector2D MovementVector = FVector2D(Controller->GetControlRotation().Vector());
+
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+	// get forward vector
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+	// get right vector 
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+	StateDirectionX = ForwardDirection;
+	StateDirectionY = RightDirection;
+	StateVector = FVector2D(FVector::RightVector);
+}
 void AC_Player::StateReset()
 {
 	Statestep		= 0;
 	StateTimer		= 0;
 	State			= PLAYERSTATE::MOVEMENT;
+	GetCharacterMovement()->MaxWalkSpeed = 200;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 }
 
