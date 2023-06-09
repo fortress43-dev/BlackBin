@@ -86,10 +86,12 @@ public:
 	PLAYERSTATE	State	= PLAYERSTATE::MOVEMENT;
 	float	StateTimer	= 0;
 	float	gagePower	= 0;
+	float	BarrierShield = 100;
 	AC_Barrier* Barrier;
 	FVector StateDirectionX;
 	FVector StateDirectionY;
 	FVector2D StateVector;
+	virtual void Hit(float value) override;
 protected:
 	int Statestep		= 0;
 	virtual void Tick(float DeltaTime) override;
