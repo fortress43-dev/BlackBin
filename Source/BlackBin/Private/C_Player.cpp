@@ -25,6 +25,9 @@ AC_Player::AC_Player()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
+	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
+	boxComp->SetupAttachment(GetCapsuleComponent());
+	boxComp->SetCollisionProfileName(TEXT("Mob"));
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
@@ -267,6 +270,7 @@ void AC_Player::Roll()
 		//PlayAnimMontage(RollMontage);
 		//FVector ForVector = FollowCamera->GetComponentRotation().Vector() *800;
 		//StateVector = FVector2D(ForVector);
+		boxComp->SetCollisionProfileName(TEXT("NoCollision"));
 		State = PLAYERSTATE::ROLL;
 		FString RotationString = FString::Printf(TEXT("Rotation: %s"), *StateVector.ToString());
 		UKismetSystemLibrary::PrintString(this, RotationString, true, false, FLinearColor::Red, 2.0f);
@@ -322,13 +326,8 @@ void AC_Player::BarrierStart()
 		Barrier = GetWorld()->SpawnActor<AC_Barrier>(BarrierClass, SpawnLocation, rotator, SpawnParams);
 		if (Barrier)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("aaaaa"));
 			Barrier->lifeTime	= 100;
 			Barrier->Host		= this;
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("bbbbb"));
 		}
 	}
 }
@@ -417,7 +416,7 @@ void AC_Player::StateRoll()
 		GetCharacterMovement()->MaxWalkSpeed = 200;
 		if (StateTimer++ < 10)
 		break;
-
+			boxComp->SetCollisionProfileName(TEXT("Mob"));
 			Statestep = MOB_STATEEND;
 		break;
 
@@ -429,4 +428,17 @@ void AC_Player::StateReset()
 	StateTimer		= 0;
 	State			= PLAYERSTATE::MOVEMENT;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
+}
+
+void AC_Player::Hit(float value)
+{
+	if (Barrier != nullptr)
+	{
+		BarrierShield -= 10;
+		value = FMath::Max(value - BarrierShield, 0);
+	}
+	if (value > 0)
+	{ 
+		Super::Hit(value);
+	}
 }

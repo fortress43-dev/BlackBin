@@ -18,7 +18,10 @@ public:
 	UPROPERTY(EditAnywhere)
 	int team = 0;
 	AC_Mob();
-	void Hit(float value);
+	virtual void Hit(float value);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+		class UBoxComponent* boxComp;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
