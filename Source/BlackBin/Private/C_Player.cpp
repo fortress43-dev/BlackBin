@@ -4,12 +4,13 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
+#include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-//#include "MotionWarpingComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "C_Barrier.h"
 #include "C_HitBox.h"
 
@@ -18,6 +19,9 @@ AC_Player::AC_Player()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+
+	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
+	boxComp->SetupAttachment(GetCapsuleComponent());
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -41,7 +45,7 @@ AC_Player::AC_Player()
 	}
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
-	GetCharacterMovement()->JumpZVelocity = 700.f;
+	GetCharacterMovement()->JumpZVelocity = 2000.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = 200;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
@@ -93,6 +97,9 @@ void AC_Player::Tick(float DeltaTime)
 			break;
 			case PLAYERSTATE::ATTACK :
 				StateAttack();
+			break;
+			case PLAYERSTATE::POWERATTACK:
+				StatePowerAttack();
 			break;
 		}
 		if (Statestep == 100)
@@ -212,9 +219,39 @@ void AC_Player::Attack()
 		//Target.Rotation = TargetActor->GetActorRotation();
 
 		//MotionWarpComponent->AddOrUpdateWarpTarget(Target);
-		StateVector = FVector2d(FollowCamera->GetComponentRotation().Vector());
-		Statestep	= 0;
+		// find out which way is forward
+		//const FRotator Rotation = Controller->GetControlRotation();
+		//const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		//// get forward vector
+		//const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+		//// get right vector 
+		//const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		Statestep = 0;
 		State = PLAYERSTATE::ATTACK;
+
+		FVector2D MovementVector = FVector2D(Controller->GetControlRotation().Vector());
+
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// get forward vector
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+		// get right vector 
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+
+
+		// add movement 
+		AddMovementInput(ForwardDirection, MovementVector.Y);
+		AddMovementInput(RightDirection, MovementVector.X);
+
+		StateDirectionX = ForwardDirection;
+		StateDirectionY = RightDirection;
+		StateVector = FVector2D(FVector::RightVector);
 	}
 }
 
@@ -231,28 +268,47 @@ void AC_Player::Roll()
 
 		//MotionWarpComponent->AddOrUpdateWarpTarget(Target);
 		//PlayAnimMontage(RollMontage);
-		FVector ForVector = FollowCamera->GetComponentRotation().Vector() *800;
+		//FVector ForVector = FollowCamera->GetComponentRotation().Vector() *800;
 		//StateVector = FVector2D(ForVector);
 		State = PLAYERSTATE::ROLL;
-		StateTimer = 5;
-		GetCharacterMovement()->Velocity.X = ForVector.Y;
-		GetCharacterMovement()->Velocity.Y = ForVector.X;
+		FString RotationString = FString::Printf(TEXT("Rotation: %s"), *StateVector.ToString());
+		UKismetSystemLibrary::PrintString(this, RotationString, true, false, FLinearColor::Red, 2.0f);
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// get forward vector
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+		// get right vector 
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+
+		// add movement 
+		AddMovementInput(ForwardDirection, StateVector.Y);
+		AddMovementInput(RightDirection, StateVector.X);
+
+		StateDirectionX = ForwardDirection;
+		StateDirectionY = RightDirection;
+
+		GetCharacterMovement()->Velocity.X = YawRotation.RotateVector(FVector(StateVector.Y, StateVector.X, 0)).X * 800;
+		GetCharacterMovement()->Velocity.Y = YawRotation.RotateVector(FVector(StateVector.Y, StateVector.X, 0)).Y*800;
 	}
 }
 
 void AC_Player::PowerAttackStart()
 {
-	if (Controller != nullptr && RollMontage != nullptr && State == PLAYERSTATE::MOVEMENT)
+	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT)
 	{
 		gagePower = FMath::Clamp(gagePower + .5, 0, 100);
-		PlayAnimMontage(PowerAttackMontage);
 	}
 }
 void AC_Player::PowerAttackEnd()
 {
-	if (Controller != nullptr && RollMontage != nullptr && State == PLAYERSTATE::MOVEMENT)
+	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT)
 	{
-			
+		State = PLAYERSTATE::POWERATTACK;
+		StateTimer = 0;
+		Statestep = 0;
 	}
 }
 
@@ -300,17 +356,52 @@ void AC_Player::StateAttack()
 		case 1 :
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			FRotator rotator = GetActorRotation();
 			FVector  SpawnLocation = GetActorLocation();
 			FVector	 addLoc = GetActorForwardVector() * 100;
 			SpawnLocation.Z -= 50.f;
 
-			AC_HitBox * Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
+			AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
 			if (Hitbox)
 			{
+				Hitbox->dmg = 10;
 				Hitbox->lifeTime = 10;
+				Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
 			}
 			Statestep = MOB_STATEEND;
+		break;
+	}
+}
+void AC_Player::StatePowerAttack()
+{
+	switch (Statestep)
+	{
+	case 0:
+		if (StateTimer++ < 20)
+			break;
+
+		Statestep++;
+		break;
+	case 1:
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		FRotator rotator = GetActorRotation();
+		FVector  SpawnLocation = GetActorLocation();
+		FVector	 addLoc = GetActorForwardVector() * 100;
+		SpawnLocation.Z -= 50.f;
+
+		AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
+		if (Hitbox)
+		{
+			Hitbox->lifeTime = 10;
+			Hitbox->team = team;
+			Hitbox->dmg = 8 * (1 + gagePower / 30);
+			Hitbox->SetActorScale3D(FVector(1 + gagePower/50));
+			Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
+		}
+		Statestep = MOB_STATEEND;
+		gagePower = 0;
 		break;
 	}
 }
@@ -340,4 +431,5 @@ void AC_Player::StateReset()
 	Statestep		= 0;
 	StateTimer		= 0;
 	State			= PLAYERSTATE::MOVEMENT;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 }

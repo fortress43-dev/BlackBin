@@ -13,7 +13,8 @@ enum class PLAYERSTATE
 {
 	MOVEMENT,
 	ATTACK,
-	ROLL
+	ROLL,
+	POWERATTACK
 };
 
 UCLASS()
@@ -84,7 +85,7 @@ public:
 	AC_Player();
 	PLAYERSTATE	State	= PLAYERSTATE::MOVEMENT;
 	float	StateTimer	= 0;
-	int		gagePower	= 0;
+	float	gagePower	= 0;
 	AC_Barrier* Barrier;
 	FVector StateDirectionX;
 	FVector StateDirectionY;
@@ -112,7 +113,11 @@ protected:
 
 	void StateReset();
 	void StateAttack();
+	void StatePowerAttack();
 	void StateRoll();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+		class UBoxComponent* boxComp;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
