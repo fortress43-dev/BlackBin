@@ -57,6 +57,8 @@ public:
         float bossStanceMode = 1600.0f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         int32 randomNumber;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        int NumberPercentage = 30;
 
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = FSM)

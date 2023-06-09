@@ -225,7 +225,7 @@ void AH_EnemyCharacter::MoveBackward()
 void AH_EnemyCharacter::Hit(float value) {
     Super::Hit(value);
     int randomN = FMath::RandRange(1, 100);
-    if (randomN < 50 && bState != EBossState::MoveBack) {
+    if (randomN < NumberPercentage && bState != EBossState::MoveBack) {
          //1 ~ 100 random number
         printf("RanN : %d",randomN);
          // 뒤로 300 정도 이동하는 상태로 전환하고 싶다.
