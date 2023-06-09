@@ -413,7 +413,7 @@ void AC_Player::StateRoll()
 			Statestep++;
 		break;
 	case 1:
-		GetCharacterMovement()->MaxWalkSpeed = 200;
+		GetCharacterMovement()->MaxWalkSpeed = 0;
 		if (StateTimer++ < 10)
 		break;
 			boxComp->SetCollisionProfileName(TEXT("Mob"));
