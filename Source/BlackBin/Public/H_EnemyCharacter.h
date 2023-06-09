@@ -43,10 +43,10 @@ public:
         TSubclassOf<AC_HitBox> HitBoxClass = AC_HitBox::StaticClass();
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        float bossIsFar = 1000;
+        float bossIsFar = 800;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        float bossIsClose = 400;
+        float bossIsClose = 200;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float moveSpeed; // Movement speed
