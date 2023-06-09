@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "C_Mob.h"
 #include "GameFramework/Character.h"
 #include "H_EnemyCharacter.generated.h"
 
@@ -17,7 +17,7 @@ enum class EBossState : uint8
 };
 
 UCLASS()
-class BLACKBIN_API AH_EnemyCharacter : public ACharacter
+class BLACKBIN_API AH_EnemyCharacter : public AC_Mob
 {
 	GENERATED_BODY()
 

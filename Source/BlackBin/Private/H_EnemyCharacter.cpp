@@ -4,6 +4,7 @@
 #include "H_EnemyCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/BoxComponent.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -179,7 +180,10 @@ void AH_EnemyCharacter::SpawnHitBox()
         AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
         if (Hitbox)
         {
+            Hitbox->dmg = 10;
             Hitbox->lifeTime = 10;
+            Hitbox->team = team;
+            Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
         }
         ct = 0;
     }
