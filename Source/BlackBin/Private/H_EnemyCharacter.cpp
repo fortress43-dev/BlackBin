@@ -107,12 +107,12 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
     
     //조건을 피격시 50퍼센트로 바꿀거임
     // 뒤로 이동하는 상태가 아니고, 거리가 400 이하면 
-    if (bState != EBossState::MoveBack && distance < 400)
+    /*if (bState != EBossState::MoveBack && distance < 400)
     {
         // 뒤로 300 정도 이동하는 상태로 전환하고 싶다.
         //GetActorLocation() + dir * dashSpeed * dt * -1;
         bState = EBossState::MoveBack;
-    }
+    }*/
 }
 
 // Called to bind functionality to input
