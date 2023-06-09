@@ -12,7 +12,7 @@
 #include "GameFramework/Actor.h"
 #include "C_HitBox.h"
 #include "C_Mob.h"
-#include <cstdlib>
+#include "Math/RandomStream.h"
 
 // Sets default values
 AH_EnemyCharacter::AH_EnemyCharacter()
@@ -49,7 +49,7 @@ AH_EnemyCharacter::AH_EnemyCharacter()
     // Set the initial movement speed and dash speed
     moveSpeed = 300.0f; // Adjust the value as needed
     dashSpeed = 2000.0f; // Adjust the value as needed
-    randomNumber = FMath::RandRange(1, 100); //1 ~ 100 random number
+    
 
 
 }
@@ -105,14 +105,7 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
 
 
     
-    //조건을 피격시 50퍼센트로 바꿀거임
-    // 뒤로 이동하는 상태가 아니고, 거리가 400 이하면 
-    /*if (bState != EBossState::MoveBack && distance < 400)
-    {
-        // 뒤로 300 정도 이동하는 상태로 전환하고 싶다.
-        //GetActorLocation() + dir * dashSpeed * dt * -1;
-        bState = EBossState::MoveBack;
-    }*/
+    
 }
 
 // Called to bind functionality to input
@@ -226,5 +219,24 @@ void AH_EnemyCharacter::MoveBackward()
     
 }
 
+//조건을 피격시 50퍼센트로 바꿀거임
+    // 뒤로 이동하는 상태가 아니고, 거리가 400 이하면 
+    /*if (bState != EBossState::MoveBack && distance < 400)
+    {
+        // 뒤로 300 정도 이동하는 상태로 전환하고 싶다.
+        //GetActorLocation() + dir * dashSpeed * dt * -1;
+        bState = EBossState::MoveBack;
+    }*/
 
+void AH_EnemyCharacter::Hit(float value) {
+    Super::Hit(value);
 
+    if (FMath::RandRange(1, 100) < 100 && bState != EBossState::MoveBack) {
+         //1 ~ 100 random number
+       
+         // 뒤로 300 정도 이동하는 상태로 전환하고 싶다.
+         //GetActorLocation() + dir * dashSpeed * dt * -1;
+         bState = EBossState::MoveBack;
+
+    }
+}

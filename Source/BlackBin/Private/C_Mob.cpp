@@ -3,6 +3,7 @@
 
 #include "C_Mob.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "DebugMessages.h"
 
 // Sets default values
 AC_Mob::AC_Mob()
@@ -23,6 +24,7 @@ void AC_Mob::BeginPlay()
 void AC_Mob::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	printf("mob hp : %d", hp);
 
 }
 

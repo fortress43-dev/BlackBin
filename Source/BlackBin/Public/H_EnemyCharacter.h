@@ -36,6 +36,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+    virtual void Hit(float value) override;
 public:
     class ASproutBossPCharacter* player;
 
