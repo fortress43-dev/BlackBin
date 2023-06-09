@@ -48,6 +48,7 @@ AH_EnemyCharacter::AH_EnemyCharacter()
     // Set the initial movement speed and dash speed
     moveSpeed = 300.0f; // Adjust the value as needed
     dashSpeed = 2000.0f; // Adjust the value as needed
+    randomNumber = FMath::RandRange(1, 100); //1 ~ 100 random number
 
 
 }
@@ -68,6 +69,7 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
     ct += DeltaTime;
     // Find the player character in the world
     ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(this, 0);
+    // 적과 나의 방향과 거리를 알고싶다.
     if (PlayerCharacter)
     {
         FVector enemyLocation = GetActorLocation();
@@ -92,9 +94,23 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
         case EBossState::DASHING:
             DASHINGState();
             break;
+        case EBossState::MoveBack:
+            MoveBackward();
+            break;
         default:
             break;
         }
+    }
+
+
+    
+    //조건을 피격시 50퍼센트로 바꿀거임
+    // 뒤로 이동하는 상태가 아니고, 거리가 400 이하면 
+    if (bState != EBossState::MoveBack && distance < 400)
+    {
+        // 뒤로 300 정도 이동하는 상태로 전환하고 싶다.
+        //GetActorLocation() + dir * dashSpeed * dt * -1;
+        bState = EBossState::MoveBack;
     }
 }
 
@@ -152,7 +168,7 @@ void AH_EnemyCharacter::DASHINGState()
 {
 
 
-    // Move towards the player character
+    // 빠른 속도로 플레이어를 향해 온다
     dir = PlayerLoc - EnemyLoc;
     dir.Normalize();
     FVector newLocation = GetActorLocation() + dir * dashSpeed * dt;
@@ -163,6 +179,8 @@ void AH_EnemyCharacter::DASHINGState()
     }
 }
 
+//히트박스를 3초동안 내 위치 앞에 스폰 하고싶다
+    //1. 히트박스 스폰오기
 void AH_EnemyCharacter::SpawnHitBox()
 {
     FActorSpawnParameters SpawnParams;
@@ -175,6 +193,7 @@ void AH_EnemyCharacter::SpawnHitBox()
     FVector addLoc = GetActorForwardVector() * 100;
     SpawnLocation.Z -= 50.f;
 
+    //2. 만약 커렌트 타임이 3을 넘어가면
 
     if (ct > 3) {
         AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
@@ -186,17 +205,22 @@ void AH_EnemyCharacter::SpawnHitBox()
     }
 }
 
+
 void AH_EnemyCharacter::MoveBackward()
 {
     // 뒤로 빠르게 이동하는 로직 구현
+    // 1. 방향구하기
     FVector backwardDirection = dir * -1.0f;
+    // 2. 이동하기
     FVector newLocation = GetActorLocation() + backwardDirection * backwardSpeed * dt;
     SetActorLocation(newLocation);
+    // 3. 만약 뒤로 300 이동했다면-> 뒤로이동하기 시작한 위치에서 부터 300 떨어졌다면
+    if (distance > 600) {
+        // -> 상태를 Default 로 전화하고 싶다.
+        bState = EBossState::DEFAULT;
+    }
+    
 }
-
-
-
-
 
 
 
