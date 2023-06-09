@@ -10,6 +10,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/Actor.h"
 #include "C_HitBox.h"
+#include "C_Mob.h"
 #include <cstdlib>
 
 // Sets default values
@@ -184,6 +185,15 @@ void AH_EnemyCharacter::SpawnHitBox()
         ct = 0;
     }
 }
+
+void AH_EnemyCharacter::MoveBackward()
+{
+    // 뒤로 빠르게 이동하는 로직 구현
+    FVector backwardDirection = dir * -1.0f;
+    FVector newLocation = GetActorLocation() + backwardDirection * backwardSpeed * dt;
+    SetActorLocation(newLocation);
+}
+
 
 
 

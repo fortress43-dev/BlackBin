@@ -61,6 +61,7 @@ public:
         EBossState bState = EBossState::DEFAULT;
 
 
+    void MoveBackward();
     
     //기본 이동상태
     void DEFAULTState();
@@ -84,6 +85,7 @@ private:
     float distance;
     float playerDistance;
     float ct = 0;
+    float backwardSpeed = 600;
 };
 
 
