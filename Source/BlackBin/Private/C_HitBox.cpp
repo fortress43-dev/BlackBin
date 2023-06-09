@@ -49,6 +49,7 @@ void AC_HitBox::NotifyActorBeginOverlap(AActor* OtherActor)
 		{
 			if (MobActor->team != team)
 			{
+				printf("HIT : %d", dmg);
 				MobActor->Hit(float(dmg));
 			}
 

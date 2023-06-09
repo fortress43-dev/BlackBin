@@ -24,7 +24,7 @@ void AC_Mob::BeginPlay()
 void AC_Mob::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	printf("mob hp : %d", hp);
+	//printf("mob hp : %d", hp);
 
 }
 
