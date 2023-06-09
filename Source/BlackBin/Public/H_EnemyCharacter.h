@@ -9,11 +9,11 @@
 UENUM(BlueprintType)
 enum class EBossState : uint8
 {
-	DEFAULT,
-	ATTACK,
-	DODASH,
-	DASHING
-
+    DEFAULT,
+    ATTACK,
+    DODASH,
+    DASHING,
+    MoveBack,
 };
 
 UCLASS()
@@ -43,10 +43,10 @@ public:
         TSubclassOf<AC_HitBox> HitBoxClass = AC_HitBox::StaticClass();
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        float bossIsFar = 800;
+        float bossIsFar = 1000;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        float bossIsClose = 200;
+        float bossIsClose = 400;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float moveSpeed; // Movement speed
@@ -55,12 +55,15 @@ public:
         float dashSpeed;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float bossStanceMode = 1600.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        int32 randomNumber;
 
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = FSM)
         EBossState bState = EBossState::DEFAULT;
 
 
+    void MoveBackward();
     
     //기본 이동상태
     void DEFAULTState();
@@ -84,6 +87,9 @@ private:
     float distance;
     float playerDistance;
     float ct = 0;
+    float backwardSpeed = 600;
+    bool IsBackStep;
+    float ct1 = 0;
 };
 
 
