@@ -288,8 +288,6 @@ void AC_Player::Roll()
 		//StateVector = FVector2D(ForVector);
 		boxComp->SetCollisionProfileName(TEXT("NoCollision"));
 		State = PLAYERSTATE::ROLL;
-		FString RotationString = FString::Printf(TEXT("Rotation: %s"), *StateVector.ToString());
-		UKismetSystemLibrary::PrintString(this, RotationString, true, false, FLinearColor::Red, 2.0f);
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
@@ -328,10 +326,6 @@ void AC_Player::PowerAttackStart()
 		State = PLAYERSTATE::POWERCHARGING;
 		Statestep = 0;
 		StateTimer = 0;
-		gagePower = FMath::Clamp(gagePower + .5, 0, 100);
-		GetCharacterMovement()->MaxWalkSpeed = 0;
-		GetCharacterMovement()->RotationRate = FRotator(0.0f, 700.0f, 0.0f); // ...at this rotation rate
-
 	}
 }
 void AC_Player::PowerAttackEnd()
@@ -430,9 +424,9 @@ void AC_Player::StatePowerAttack()
 			Hitbox->lifeTime = 10;
 			Hitbox->team = team;
 			Hitbox->dmg = 8 * (1 + gagePower / 30);
+		}
 			Hitbox->SetActorScale3D(FVector(1 + gagePower/50));
 			Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
-		}
 		Statestep = MOB_STATEEND;
 		gagePower = 0;
 		break;
@@ -479,6 +473,10 @@ void AC_Player::StatePowerCharging()
 		Statestep++;
 		break;
 	}
+	gagePower = FMath::Clamp(gagePower + .5, 0, 100);
+	GetCharacterMovement()->MaxWalkSpeed = 0;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 700.0f, 0.0f); // ...at this rotation rate
+
 	FVector2D MovementVector = FVector2D(Controller->GetControlRotation().Vector());
 
 	const FRotator Rotation = Controller->GetControlRotation();
