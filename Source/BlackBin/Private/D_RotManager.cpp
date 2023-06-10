@@ -2,11 +2,15 @@
 
 
 #include "D_RotManager.h"
+#include "InputMappingContext.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "DebugMessages.h"
 
 // Sets default values
 AD_RotManager::AD_RotManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+ 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -15,26 +19,48 @@ AD_RotManager::AD_RotManager()
 void AD_RotManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
+    print("begin works well");
 }
 
 // Called every frame
 void AD_RotManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	// rot 공격 키를 누르면 rot의 상태가 공격으로 전환
-	// rot 가 목적지를 향해서 날아감
-	// 목적지에 다다르면 원운동을 한다
-	// 다시 키를 누르면 폭발한다
-	// rot는 공중으로 날아가며 2초간 넉다운 상태에 빠진다
-
-	
-
-
 }
 
-void AD_RotManager::StateMachine()
+// Called to bind functionality to input
+void AD_RotManager::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+    // Get the player controller
+    APlayerController* PC = Cast<APlayerController>(GetController());
 
+    // Get the local player subsystem
+    UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+    // Clear out existing mapping, and add our mapping
+    Subsystem->ClearAllMappings();
+    Subsystem->AddMappingContext(InputMapping, 0);
+
+    if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
+        EnhancedInputComponent->BindAction(RotAction, ETriggerEvent::Triggered, this, &AD_RotManager::RotActionSkill);
+        EnhancedInputComponent->BindAction(Interaction, ETriggerEvent::Triggered, this, &AD_RotManager::InteractionStart);
+    
+    
+    
+    }
+
+   
 }
+
+void AD_RotManager::RotActionSkill()
+{
+    print("rotAcion");
+}
+
+void AD_RotManager::InteractionStart()
+{
+    print("interaction");
+}
+
+
 
