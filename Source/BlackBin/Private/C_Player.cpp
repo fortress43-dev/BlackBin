@@ -235,48 +235,68 @@ void AC_Player::RunEnd()
 
 void AC_Player::Attack()
 {
-	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT)
+	if (Controller != nullptr)
 	{
-		//IsAttack = true;
-		//FMotionWarpingTarget Target = {};
-		//Target.Name = FName("Target");
-		//Target.Location = TargetActor->GetActorLocation();
-		//Target.Rotation = TargetActor->GetActorRotation();
+		if (State == PLAYERSTATE::MOVEMENT)
+		{
+			//IsAttack = true;
+			//FMotionWarpingTarget Target = {};
+			//Target.Name = FName("Target");
+			//Target.Location = TargetActor->GetActorLocation();
+			//Target.Rotation = TargetActor->GetActorRotation();
 
-		//MotionWarpComponent->AddOrUpdateWarpTarget(Target);
-		// find out which way is forward
-		//const FRotator Rotation = Controller->GetControlRotation();
-		//const FRotator YawRotation(0, Rotation.Yaw, 0);
+			//MotionWarpComponent->AddOrUpdateWarpTarget(Target);
+			// find out which way is forward
+			//const FRotator Rotation = Controller->GetControlRotation();
+			//const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		//// get forward vector
-		//const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			//// get forward vector
+			//const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
-		//// get right vector 
-		//const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+			//// get right vector 
+			//const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		Statestep = 0;
-		State = PLAYERSTATE::ATTACK;
+			Statestep = 0;
+			State = PLAYERSTATE::ATTACK;
 
-		FVector2D MovementVector = FVector2D(Controller->GetControlRotation().Vector());
+			FVector2D MovementVector = FVector2D(Controller->GetControlRotation().Vector());
 
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			// get forward vector
+			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
-		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+			// get right vector 
+			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
 
 
-		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+			// add movement 
+			AddMovementInput(ForwardDirection, MovementVector.Y);
+			AddMovementInput(RightDirection, MovementVector.X);
 
-		StateDirectionX = ForwardDirection;
-		StateDirectionY = RightDirection;
-		StateVector = FVector2D(FVector::RightVector);
+			StateDirectionX = ForwardDirection;
+			StateDirectionY = RightDirection;
+			StateVector = FVector2D(FVector::RightVector);
+		}
+		else if (State == PLAYERSTATE::ARROW)
+		{
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			FRotator rotator = Controller->GetControlRotation();
+			FVector  SpawnLocation = GetActorLocation();
+			FVector	 addLoc = GetActorRightVector() * 100;
+			SpawnLocation.Z -= 50.f;
+			AC_Arrow* Arrow = GetWorld()->SpawnActor<AC_Arrow>(ArrowClass, SpawnLocation + addLoc, rotator, SpawnParams);
+			if (Arrow)
+			{
+				Arrow->dmg = 6;
+				Arrow->lifeTime = 100;
+				Arrow->boxComp->SetCollisionProfileName(TEXT("HitBox"));
+			}
+		}
 	}
 }
 
@@ -337,21 +357,6 @@ void AC_Player::ArrowEnd()
 		CameraBoom->TargetArmLength = 400.0f;
 		FollowCamera->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
 		Statestep = 100;
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		FRotator rotator = Controller->GetControlRotation();
-		FVector  SpawnLocation = GetActorLocation();
-		FVector	 addLoc = GetActorRightVector() * 100;
-		SpawnLocation.Z -= 50.f;
-		AC_Arrow* Arrow = GetWorld()->SpawnActor<AC_Arrow>(ArrowClass, SpawnLocation + addLoc, rotator, SpawnParams);
-		if (Arrow)
-		{
-			Arrow->dmg = 6;
-			Arrow->lifeTime = 100;
-			Arrow->boxComp->SetCollisionProfileName(TEXT("HitBox"));
-		}
-
 	}
 }
 
@@ -514,6 +519,7 @@ void AC_Player::StateArrow()
 	StateDirectionX = ForwardDirection;
 	StateDirectionY = RightDirection;
 	StateVector = FVector2D(FVector::RightVector);
+
 }
 void AC_Player::StatePowerCharging()
 {
