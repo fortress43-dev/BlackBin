@@ -2,22 +2,21 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "C_Mob.h"
 #include "GameFramework/Character.h"
 #include "H_EnemyCharacter.generated.h"
 
 UENUM(BlueprintType)
 enum class EBossState : uint8
 {
-	DEFAULT,
-	ATTACK,
-	DODASH,
-	DASHING
-
+    DEFAULT,
+    ATTACK,
+    DASHING,
+    MoveBack,
 };
 
 UCLASS()
-class BLACKBIN_API AH_EnemyCharacter : public ACharacter
+class BLACKBIN_API AH_EnemyCharacter : public AC_Mob
 {
 	GENERATED_BODY()
 
@@ -36,6 +35,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+    virtual void Hit(float value) override;
 public:
     class ASproutBossPCharacter* player;
 
@@ -43,10 +43,10 @@ public:
         TSubclassOf<AC_HitBox> HitBoxClass = AC_HitBox::StaticClass();
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        float bossIsFar = 800;
+        float bossIsFar = 1000;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        float bossIsClose = 200;
+        float bossIsClose = 400;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float moveSpeed; // Movement speed
@@ -55,17 +55,18 @@ public:
         float dashSpeed;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float bossStanceMode = 1600.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        int32 randomNumber;
 
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = FSM)
         EBossState bState = EBossState::DEFAULT;
 
 
+    void MoveBackward();
     
     //기본 이동상태
     void DEFAULTState();
-    //대쉬 상태
-    void DODASHState();
     //기본 공격 상태
     void ATTACKState();
     //대쉬중
@@ -84,6 +85,9 @@ private:
     float distance;
     float playerDistance;
     float ct = 0;
+    float backwardSpeed = 600;
+    bool IsBackStep;
+    float ct1 = 0;
 };
 
 

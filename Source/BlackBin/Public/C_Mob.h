@@ -15,13 +15,17 @@ public:
 	float max_hp	= 100;
 	int	hp			= max_hp;
 	// Sets default values for this character's properties
+	UPROPERTY(EditAnywhere)
+	int team = 0;
 	AC_Mob();
+	virtual void Hit(float value);
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+		class UBoxComponent* boxComp;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
-	void Hit(float value);
 	void Death();
 public:	
 	// Called every frame

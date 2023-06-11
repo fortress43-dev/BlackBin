@@ -2,12 +2,22 @@
 
 
 #include "C_HitBox.h"
-
+#include "C_Mob.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Components/BoxComponent.h"
 // Sets default values
 AC_HitBox::AC_HitBox()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
+	SetRootComponent(boxComp);
+	//boxComp->bgenera
+
+	
+	//boxComp = GetComponentByClass<UBoxComponent>();
+	//GetComponentsByClass<UBoxComponent>();
 
 }
 
@@ -26,5 +36,23 @@ void AC_HitBox::Tick(float DeltaTime)
 	if (lifeTime == 0)
 	{
 		Destroy();
+	}
+}
+
+void AC_HitBox::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	Super::NotifyActorBeginOverlap(OtherActor);
+	if (OtherActor->IsA<AC_Mob>())
+	{
+		AC_Mob* MobActor = Cast<AC_Mob>(OtherActor);
+		if (MobActor)
+		{
+			if (MobActor->team != team)
+			{
+				printf("HIT : %d", dmg);
+				MobActor->Hit(float(dmg));
+			}
+
+		}
 	}
 }
