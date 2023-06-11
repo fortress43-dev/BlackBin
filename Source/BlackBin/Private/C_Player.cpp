@@ -239,6 +239,7 @@ void AC_Player::Attack()
 	{
 		if (State == PLAYERSTATE::MOVEMENT)
 		{
+<<<<<<< HEAD
 			//IsAttack = true;
 			//FMotionWarpingTarget Target = {};
 			//Target.Name = FName("Target");
@@ -267,6 +268,7 @@ void AC_Player::Attack()
 			// get forward vector
 			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
+=======
 			Statestep = 0;
 			State = PLAYERSTATE::ATTACK;
 
@@ -278,6 +280,7 @@ void AC_Player::Attack()
 			// get forward vector
 			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
+>>>>>>> CSK
 			// get right vector 
 			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -291,9 +294,12 @@ void AC_Player::Attack()
 			StateDirectionY = RightDirection;
 			StateVector = FVector2D(FVector::RightVector);
 		}
+<<<<<<< HEAD
 		else if (State == PLAYERSTATE::ARROW)
+=======
 		else
 		if (State == PLAYERSTATE::ARROW)
+>>>>>>> CSK
 		{
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
