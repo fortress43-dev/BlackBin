@@ -13,7 +13,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "C_Barrier.h"
 #include "C_HitBox.h"
-
+#include "C_Arrow.h"
 // Sets default values
 AC_Player::AC_Player()
 {
@@ -42,6 +42,12 @@ AC_Player::AC_Player()
 	if (HitBoxObject.Object)
 	{
 		HitBoxClass = (UClass*)HitBoxObject.Object->GeneratedClass;
+	}
+	\
+	static ConstructorHelpers::FObjectFinder<UBlueprint> ArrowObject(TEXT("/Script/Engine.Blueprint'/Game/CSK/Blueprints/BP_Arrow.BP_Arrow'"));
+	if (ArrowObject.Object)
+	{
+		ArrowClass = (UClass*)ArrowObject.Object->GeneratedClass;
 	}
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
@@ -312,11 +318,38 @@ void AC_Player::Roll()
 
 void AC_Player::ArrowStart()
 {
-	CameraBoom->TargetArmLength = 200.0f;
+	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT)
+	{
+		CameraBoom->TargetArmLength = 200.0f;
+		FollowCamera->SetRelativeLocation(FVector(0.f, 100.f, 0.f));
+		State = PLAYERSTATE::ARROW;
+		GetCharacterMovement()->Velocity.X = 0;
+		GetCharacterMovement()->Velocity.Y = 0;
+	}
 }
 void AC_Player::ArrowEnd()
 {
-	CameraBoom->TargetArmLength = 400.0f;
+	if (Controller != nullptr && State == PLAYERSTATE::ARROW)
+	{
+		CameraBoom->TargetArmLength = 400.0f;
+		FollowCamera->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
+		Statestep = 100;
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		FRotator rotator = Controller->GetControlRotation();
+		FVector  SpawnLocation = GetActorLocation();
+		FVector	 addLoc = GetActorRightVector() * 100;
+		SpawnLocation.Z -= 50.f;
+		AC_Arrow* Arrow = GetWorld()->SpawnActor<AC_Arrow>(ArrowClass, SpawnLocation + addLoc, rotator, SpawnParams);
+		if (Arrow)
+		{
+			Arrow->dmg = 6;
+			Arrow->lifeTime = 100;
+			Arrow->boxComp->SetCollisionProfileName(TEXT("HitBox"));
+		}
+
+	}
 }
 
 void AC_Player::PowerAttackStart()
@@ -326,6 +359,8 @@ void AC_Player::PowerAttackStart()
 		State = PLAYERSTATE::POWERCHARGING;
 		Statestep = 0;
 		StateTimer = 0;
+		GetCharacterMovement()->Velocity.X = 0;
+		GetCharacterMovement()->Velocity.Y = 0;
 	}
 }
 void AC_Player::PowerAttackEnd()
@@ -459,7 +494,23 @@ void AC_Player::StateBarrier()
 }
 void AC_Player::StateArrow()
 {
+	GetCharacterMovement()->MaxWalkSpeed = 0;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 700.0f, 0.0f); // ...at this rotation rate
 
+	FVector2D MovementVector = FVector2D(Controller->GetControlRotation().Vector());
+
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+	// get forward vector
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+	// get right vector 
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+	StateDirectionX = ForwardDirection;
+	StateDirectionY = RightDirection;
+	StateVector = FVector2D(FVector::RightVector);
 }
 void AC_Player::StatePowerCharging()
 {

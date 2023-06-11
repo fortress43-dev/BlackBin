@@ -85,6 +85,8 @@ class BLACKBIN_API AC_Player : public AC_Mob
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<AC_HitBox> HitBoxClass = AC_HitBox::StaticClass();
 
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<AC_Arrow> ArrowClass = AC_Arrow::StaticClass();
 	//UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		//TObjectPtr<class UMotionWarpingComponent> MotionWarpComponent;
 public:
