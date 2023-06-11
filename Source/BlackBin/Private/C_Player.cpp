@@ -28,8 +28,8 @@ AC_Player::AC_Player()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
-	boxComp->SetupAttachment(GetCapsuleComponent());
+	//boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
+	//boxComp->SetupAttachment(GetCapsuleComponent());
 	boxComp->SetCollisionProfileName(TEXT("Mob"));
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
