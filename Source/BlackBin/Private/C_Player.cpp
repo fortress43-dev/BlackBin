@@ -267,6 +267,17 @@ void AC_Player::Attack()
 			// get forward vector
 			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
+			Statestep = 0;
+			State = PLAYERSTATE::ATTACK;
+
+			FVector2D MovementVector = FVector2D(Controller->GetControlRotation().Vector());
+
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+			// get forward vector
+			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
 			// get right vector 
 			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -281,6 +292,8 @@ void AC_Player::Attack()
 			StateVector = FVector2D(FVector::RightVector);
 		}
 		else if (State == PLAYERSTATE::ARROW)
+		else
+		if (State == PLAYERSTATE::ARROW)
 		{
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
