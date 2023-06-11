@@ -28,12 +28,30 @@ void AD_TriggerBox::Tick(float DeltaTime)
 
 }
 
+void AD_TriggerBox::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	print("TriggerBox is Collided");
+	isActive = IsPreConditionFulFill();
+
+	print("collided");
+	if (!isActive) {
+		print("Button is not activated")
+			return;
+	}
+	if (animFactory) {
+		if (animFactory->SequencePlayer)
+		{
+			animFactory->SequencePlayer->Play();
+		}
+	}
+}
+
 /// <summary>
 /// play connected Animation with this trigger Actor
 /// </summary>
 /// <param name="overlappedActor"></param>
 /// <param name="otherActor"></param>
-void AD_TriggerBox::PlayAnim(AActor* overlappedActor, AActor* otherActor)
+/*void AD_TriggerBox::PlayAnim(AActor* overlappedActor, AActor* otherActor)
 {
 	isActive = IsPreConditionFulFill();
 
@@ -63,6 +81,7 @@ void AD_TriggerBox::PlayAnim(AActor* overlappedActor, AActor* otherActor)
 		}
 	}
 }
+*/
 
 /// <summary>
 /// 먼저 Active되어야 하는 오브제들이 모두 켜져있는 지 검사한다

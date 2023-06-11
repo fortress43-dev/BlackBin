@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "DebugMessages.h"
 #include "D_LightTorch.generated.h"
+
 
 UCLASS()
 class BLACKBIN_API AD_LightTorch : public AActor

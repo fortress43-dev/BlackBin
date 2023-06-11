@@ -11,9 +11,12 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "C_Barrier.h"
 #include "C_HitBox.h"
 #include "C_Arrow.h"
+#include "D_RotManager.h"
+#include "DebugMessages.h"
 // Sets default values
 AC_Player::AC_Player()
 {
@@ -91,6 +94,8 @@ void AC_Player::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	RotManager = Cast<AD_RotManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AD_RotManager::StaticClass()));
 }
 // Called every frame
 void AC_Player::Tick(float DeltaTime)
@@ -161,6 +166,9 @@ void AC_Player::SetupPlayerInputComponent(class UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(ArrowAction, ETriggerEvent::Completed, this, &AC_Player::ArrowEnd);
 
 		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Triggered, this, &AC_Player::Roll);
+
+		EnhancedInputComponent->BindAction(RotAction, ETriggerEvent::Triggered, this, &AC_Player::RotActionStart);
+		EnhancedInputComponent->BindAction(InterAction, ETriggerEvent::Triggered, this, &AC_Player::InterActionStart);
 	}
 
 }
@@ -551,6 +559,20 @@ void AC_Player::StatePowerCharging()
 	StateDirectionX = ForwardDirection;
 	StateDirectionY = RightDirection;
 	StateVector = FVector2D(FVector::RightVector);
+}
+void AC_Player::RotActionStart()
+{
+	print("RotAction Triggered");
+	if (RotManager) {
+		RotManager->RotActionSkill();
+	}
+}
+void AC_Player::InterActionStart()
+{
+	print("InterAction Triggered");
+	if (RotManager) {
+		RotManager->InteractionStart();
+	}
 }
 void AC_Player::StateReset()
 {

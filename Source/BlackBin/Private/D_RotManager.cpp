@@ -3,8 +3,6 @@
 
 #include "D_RotManager.h"
 #include "InputMappingContext.h"
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
 #include "DebugMessages.h"
 
 // Sets default values
@@ -19,7 +17,6 @@ AD_RotManager::AD_RotManager()
 void AD_RotManager::BeginPlay()
 {
 	Super::BeginPlay();
-    print("begin works well");
 }
 
 // Called every frame
@@ -31,35 +28,17 @@ void AD_RotManager::Tick(float DeltaTime)
 // Called to bind functionality to input
 void AD_RotManager::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-    // Get the player controller
-    APlayerController* PlayerController = Cast<APlayerController>(Controller);
-
-    // Get the local player subsystem
-    UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
-    // Clear out existing mapping, and add our mapping
-    Subsystem->ClearAllMappings();
-    Subsystem->AddMappingContext(InputMapping, 0);
-
-    if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-        EnhancedInputComponent->BindAction(RotAction, ETriggerEvent::Triggered, this, &AD_RotManager::RotActionSkill);
-        EnhancedInputComponent->BindAction(Interaction, ETriggerEvent::Triggered, this, &AD_RotManager::InteractionStart);
-    
-    
-    
-    }
-
-   
 }
 
 void AD_RotManager::RotActionSkill()
 {
-    print("rotAcion");
+    print("called rotAcion");
 }
 
 void AD_RotManager::InteractionStart()
 {
-    print("interaction");
+    print("called interaction");
+	//if (curRot)curRot->onCollectKey == true;
 }
 
 

@@ -6,7 +6,9 @@
 #include "DrawDebugHelpers.h"
 #include "Math/UnrealMathUtility.h"
 #include "DebugMessages.h"
+#include "Kismet/GameplayStatics.h"
 #include "C_Barrier.h"
+
 
 
 // Sets default values
@@ -32,6 +34,9 @@ void AD_Rot::BeginPlay()
 	Super::BeginPlay();
 	p1 = GetActorLocation();
 	p2 = FVector(p1.X, p1.Y, p1.Z + rotActiveHeight);
+
+	// rotManager setting
+	//rotManager = Cast<AD_RotManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AD_RotManager::StaticClass()));
 }
 
 void AD_Rot::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -64,12 +69,19 @@ void AD_Rot::Tick(float DeltaTime)
 		break;
 	case collected:
 		// AI Move기능을 켜준다
-		useAIMove = true;
+		usingAIMove = true;
 		break;
 	default:
 		break;
 	}
 
+}
+/// <summary>
+/// this Function is for calling from player's class with input system
+/// </summary>
+void AD_Rot::InterAction()
+{
+	usingAIMove = true;
 }
 
 void AD_Rot::ActivateRot()
@@ -81,12 +93,19 @@ void AD_Rot::ActivateRot()
 
 	if (curTime > 1.0f) {
 		rotCollect = RotCollect::activated;
+		curTime = 0;
+		//rotManager->curRot = this;
+
+		// for proto
+		rotCollect = RotCollect::collected;
+		rotState = RotState::follow;
+
+		print("rot Collect Success / rot is following you");
 	}
 }
 
 void AD_Rot::CollectActivatedRot()
 {
-	curTime = 0;
 	// rot의 위치를 player근처 랜덤한 위치에 배치하고
 	// navi를 켠다
 	// UI를 띄운다
@@ -94,6 +113,7 @@ void AD_Rot::CollectActivatedRot()
 		//SetActorLocation(p1);
 		rotCollect = RotCollect::collected;
 		rotState = RotState::follow;
+		
 		print("rot Collect Success / rot is following you");
 
 	}

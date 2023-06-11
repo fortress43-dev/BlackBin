@@ -9,6 +9,7 @@
 #include "D_Rot.generated.h"
 
 
+
 UENUM(BlueprintType)
 enum RotCollect {
 	hidden,
@@ -41,6 +42,7 @@ protected:
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor);
 	//virtual void NotifyActorBeginCursorOver();
 
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -54,8 +56,12 @@ public:
 		UBoxComponent* boxComp;
 	UPROPERTY(EditAnywhere)
 		bool onCollectKey = false;
-	UPROPERTY(BlueprintReadOnly)
-		bool useAIMove = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		bool usingAIMove = false;
+
+
+	void SetAIMove();
+	void InterAction();
 private:
 
 	//Rot Activating Animation

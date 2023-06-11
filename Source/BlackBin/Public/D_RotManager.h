@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "D_Rot.h"
 #include "D_RotManager.generated.h"
 
 UCLASS()
@@ -19,14 +20,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-#pragma region /** Input */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enhanced Input")
-		class UInputMappingContext* InputMapping;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* RotAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* Interaction;
-#pragma endregion
 
 public:	
 	// Called every frame
@@ -34,6 +27,9 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	class AD_Rot* curRot;
+	TArray<class AD_Rot> rotList;
 
 
 	void RotActionSkill();

@@ -4,6 +4,7 @@
 #include "D_LightTorch.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "DebugMessages.h"
 
 
 
@@ -24,6 +25,7 @@ void AD_LightTorch::BeginPlay()
 
 void AD_LightTorch::NotifyActorBeginOverlap(AActor* OtherActor)
 {
+	print("LightTorch is collided");
 	if (isActive)return;
 	// Effect, Light, Sound ∏¶ spawn«—¥Ÿ
 	FVector EffectLocation = GetActorLocation();
