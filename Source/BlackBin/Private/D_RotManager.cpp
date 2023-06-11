@@ -33,10 +33,10 @@ void AD_RotManager::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
     // Get the player controller
-    APlayerController* PC = Cast<APlayerController>(GetController());
+    APlayerController* PlayerController = Cast<APlayerController>(Controller);
 
     // Get the local player subsystem
-    UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+    UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
     // Clear out existing mapping, and add our mapping
     Subsystem->ClearAllMappings();
     Subsystem->AddMappingContext(InputMapping, 0);
