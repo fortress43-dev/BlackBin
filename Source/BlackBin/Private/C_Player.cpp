@@ -20,9 +20,6 @@ AC_Player::AC_Player()
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
-	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
-	boxComp->SetupAttachment(GetCapsuleComponent());
-
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -239,7 +236,6 @@ void AC_Player::Attack()
 	{
 		if (State == PLAYERSTATE::MOVEMENT)
 		{
-<<<<<<< HEAD
 			//IsAttack = true;
 			//FMotionWarpingTarget Target = {};
 			//Target.Name = FName("Target");
@@ -267,20 +263,6 @@ void AC_Player::Attack()
 
 			// get forward vector
 			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
-=======
-			Statestep = 0;
-			State = PLAYERSTATE::ATTACK;
-
-			FVector2D MovementVector = FVector2D(Controller->GetControlRotation().Vector());
-
-			const FRotator Rotation = Controller->GetControlRotation();
-			const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-			// get forward vector
-			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
->>>>>>> CSK
 			// get right vector 
 			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -294,12 +276,7 @@ void AC_Player::Attack()
 			StateDirectionY = RightDirection;
 			StateVector = FVector2D(FVector::RightVector);
 		}
-<<<<<<< HEAD
 		else if (State == PLAYERSTATE::ARROW)
-=======
-		else
-		if (State == PLAYERSTATE::ARROW)
->>>>>>> CSK
 		{
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
