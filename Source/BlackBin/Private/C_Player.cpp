@@ -23,9 +23,6 @@ AC_Player::AC_Player()
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
-	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
-	boxComp->SetupAttachment(GetCapsuleComponent());
-
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -274,7 +271,6 @@ void AC_Player::Attack()
 
 			// get forward vector
 			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
 			// get right vector 
 			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
