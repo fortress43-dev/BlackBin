@@ -92,6 +92,9 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
         // Update the state
         switch (bState)
         {
+        case EBossState::IDLE:
+            IDLEState();
+            break;
         case EBossState::DEFAULT:
             DEFAULTState();
             break;
@@ -123,6 +126,12 @@ void AH_EnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 }
 
 
+void AH_EnemyCharacter::IDLEState() {
+    dir = FVector::ZeroVector;
+    if (distance < bossStanceMode) {
+        bState = EBossState::DASHING;
+    }
+}
 
 void AH_EnemyCharacter::DEFAULTState()
 {
@@ -134,7 +143,7 @@ void AH_EnemyCharacter::DEFAULTState()
     if (distance < bossIsClose) {
         bState = EBossState::ATTACK;
     }
-    else if (distance > bossIsFar) {
+    else if (distance > bossIsFar && distance < bossStanceMode) {
         bState = EBossState::DASHING;
     }
     
