@@ -73,6 +73,7 @@ AC_Player::AC_Player()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	zoomTarget = CameraBoom->TargetArmLength;
 }
 
 void AC_Player::BeginPlay()
@@ -124,6 +125,17 @@ void AC_Player::Tick(float DeltaTime)
 		AddMovementInput(StateDirectionX, StateVector.Y);
 		AddMovementInput(StateDirectionY, StateVector.X);
 	}
+	if (CameraBoom->TargetArmLength != zoomTarget)
+	{
+		if (abs(CameraBoom->TargetArmLength - zoomTarget) > 5)
+		{
+			CameraBoom->TargetArmLength = FMath::Lerp(CameraBoom->TargetArmLength, zoomTarget, .2);
+		}
+		else
+		{
+			CameraBoom->TargetArmLength = zoomTarget;
+		}
+	}
 }
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -150,6 +162,7 @@ void AC_Player::SetupPlayerInputComponent(class UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(BarrierAction, ETriggerEvent::Completed, this, &AC_Player::BarrierEnd);
 
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AC_Player::Attack);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AC_Player::ArrowAttack);
 
 		EnhancedInputComponent->BindAction(PowerAttackAction, ETriggerEvent::Triggered, this, &AC_Player::PowerAttackStart);
 		EnhancedInputComponent->BindAction(PowerAttackAction, ETriggerEvent::Completed, this, &AC_Player::PowerAttackEnd);
@@ -277,21 +290,29 @@ void AC_Player::Attack()
 			StateVector = FVector2D(FVector::RightVector);
 		}
 		else if (State == PLAYERSTATE::ARROW)
+		{	
+			gageArrow = FMath::Clamp(gageArrow + .5, 0, 100); // ...at this rotation rate
+		}
+	}
+}
+void AC_Player::ArrowAttack()
+{
+	if (State == PLAYERSTATE::ARROW)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		FRotator rotator = Controller->GetControlRotation();
+		FVector  SpawnLocation = GetActorLocation();
+		FVector	 addLoc = GetActorRightVector() * 50;
+		rotator.Yaw += 5;
+		SpawnLocation.Z -= 50.f;
+		AC_Arrow* Arrow = GetWorld()->SpawnActor<AC_Arrow>(ArrowClass, SpawnLocation + addLoc, rotator, SpawnParams);
+		if (Arrow)
 		{
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.Owner = this;
-			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			FRotator rotator = Controller->GetControlRotation();
-			FVector  SpawnLocation = GetActorLocation();
-			FVector	 addLoc = GetActorRightVector() * 100;
-			SpawnLocation.Z -= 50.f;
-			AC_Arrow* Arrow = GetWorld()->SpawnActor<AC_Arrow>(ArrowClass, SpawnLocation + addLoc, rotator, SpawnParams);
-			if (Arrow)
-			{
-				Arrow->dmg = 6;
-				Arrow->lifeTime = 100;
-				Arrow->boxComp->SetCollisionProfileName(TEXT("HitBox"));
-			}
+			Arrow->dmg = 6 + gageArrow/20;
+			Arrow->lifeTime = 100;
+			Arrow->boxComp->SetCollisionProfileName(TEXT("HitBox"));
 		}
 	}
 }
@@ -339,7 +360,7 @@ void AC_Player::ArrowStart()
 {
 	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT)
 	{
-		CameraBoom->TargetArmLength = 200.0f;
+		zoomTarget = 200.0f;
 		FollowCamera->SetRelativeLocation(FVector(0.f, 100.f, 0.f));
 		State = PLAYERSTATE::ARROW;
 		GetCharacterMovement()->Velocity.X = 0;
@@ -350,7 +371,7 @@ void AC_Player::ArrowEnd()
 {
 	if (Controller != nullptr && State == PLAYERSTATE::ARROW)
 	{
-		CameraBoom->TargetArmLength = 400.0f;
+		zoomTarget = 400.0f;
 		FollowCamera->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
 		Statestep = 100;
 	}
@@ -477,7 +498,7 @@ void AC_Player::StateRoll()
 	{
 	case 0:
 		GetCharacterMovement()->MaxWalkSpeed = 500;
-		if (StateTimer++ < 60)
+		if (StateTimer++ < 10)
 			break;
 			StateTimer = 0;
 			Statestep++;

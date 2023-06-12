@@ -94,7 +94,9 @@ public:
 	PLAYERSTATE	State	= PLAYERSTATE::MOVEMENT;
 	float	StateTimer	= 0;
 	float	gagePower	= 0;
+	float	gageArrow	= 0;
 	float	BarrierShield = 100;
+	float	zoomTarget;
 	AC_Barrier* Barrier;
 	FVector StateDirectionX;
 	FVector StateDirectionY;
@@ -118,6 +120,7 @@ protected:
 	void BarrierEnd();
 
 	void Attack();
+	void ArrowAttack();
 	void PowerAttackStart();
 	void PowerAttackEnd();
 	void ArrowStart();
