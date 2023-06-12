@@ -9,6 +9,7 @@
 UENUM(BlueprintType)
 enum class EBossState : uint8
 {
+    IDLE,
     DEFAULT,
     ATTACK,
     DASHING,
@@ -62,10 +63,12 @@ public:
 
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = FSM)
-        EBossState bState = EBossState::DEFAULT;
+        EBossState bState = EBossState::IDLE;
 
 
     void MoveBackward();
+
+    void IDLEState();
     
     //기본 이동상태
     void DEFAULTState();
