@@ -82,6 +82,8 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
         FRotator TargetRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
         FRotator CurrentRotation = GetActorRotation();
         FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, GetWorld()->GetDeltaSeconds(), 1);
+        NewRotation.Pitch = 0;
+        NewRotation.Roll = 0;
         SetActorRotation(NewRotation);
 
         PlayerLoc = playerLocation;
