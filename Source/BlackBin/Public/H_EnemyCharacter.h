@@ -55,7 +55,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float dashSpeed;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        float bossStanceMode = 1600.0f;
+        float bossStanceMode = 1500;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         int32 randomNumber;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -90,7 +90,7 @@ private:
     float distance;
     float playerDistance;
     float ct = 0;
-    float backwardSpeed = 600;
+    float backwardSpeed = 800;
     bool IsBackStep;
     float ct1 = 0;
 };

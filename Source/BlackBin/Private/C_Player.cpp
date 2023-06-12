@@ -291,7 +291,7 @@ void AC_Player::Attack()
 			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			FRotator rotator = Controller->GetControlRotation();
 			FVector  SpawnLocation = GetActorLocation();
-			FVector	 addLoc = GetActorRightVector() * 100;
+			FVector	 addLoc = GetActorRightVector() * 50;
 			SpawnLocation.Z -= 50.f;
 			AC_Arrow* Arrow = GetWorld()->SpawnActor<AC_Arrow>(ArrowClass, SpawnLocation + addLoc, rotator, SpawnParams);
 			if (Arrow)
@@ -485,7 +485,7 @@ void AC_Player::StateRoll()
 	{
 	case 0:
 		GetCharacterMovement()->MaxWalkSpeed = 500;
-		if (StateTimer++ < 60)
+		if (StateTimer++ < 10)
 			break;
 			StateTimer = 0;
 			Statestep++;

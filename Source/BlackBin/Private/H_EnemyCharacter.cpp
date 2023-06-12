@@ -48,7 +48,7 @@ AH_EnemyCharacter::AH_EnemyCharacter()
 
     // Set the initial movement speed and dash speed
     moveSpeed = 300.0f; // Adjust the value as needed
-    dashSpeed = 2000.0f; // Adjust the value as needed
+    dashSpeed = 1200.0f; // Adjust the value as needed
     
 
 
@@ -81,7 +81,7 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
 
         FRotator TargetRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
         FRotator CurrentRotation = GetActorRotation();
-        FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, GetWorld()->GetDeltaSeconds(), 1);
+        FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, GetWorld()->GetDeltaSeconds(), 2);
         NewRotation.Pitch = 0;
         NewRotation.Roll = 0;
         SetActorRotation(NewRotation);
@@ -224,7 +224,7 @@ void AH_EnemyCharacter::MoveBackward()
     printf("VectorY: %f", backwardDirection.Y);
     printf("VectorZ: %f", backwardDirection.Z);
     printf("Speed %f", backwardSpeed);*/
-    if (distance > 600) {
+    if (distance > 400) {
         // -> 상태를 Default 로 전화하고 싶다.
         bState = EBossState::DEFAULT;
     }
