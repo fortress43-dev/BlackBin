@@ -3,6 +3,7 @@
 
 #include "C_Mob.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "DebugMessages.h"
 
 // Sets default values
 AC_Mob::AC_Mob()
@@ -23,6 +24,7 @@ void AC_Mob::BeginPlay()
 void AC_Mob::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	//printf("mob hp : %d", hp);
 
 }
 
@@ -38,8 +40,8 @@ void AC_Mob::Hit(float value)
 	hp -= value;
 	if (hp <= 0)
 		Death();
-	FString RotationString = FString::Printf(TEXT("Rotation: %f %f"), team, value);
-	UKismetSystemLibrary::PrintString(this, RotationString, true, false, FLinearColor::Red, 2.0f);
+	//FString RotationString = FString::Printf(TEXT("Rotation: %f %f"), team, value);
+	//UKismetSystemLibrary::PrintString(this, RotationString, true, false, FLinearColor::Red, 2.0f);
 }
 
 void AC_Mob::Death()

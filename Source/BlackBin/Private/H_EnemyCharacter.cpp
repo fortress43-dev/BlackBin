@@ -12,8 +12,8 @@
 #include "GameFramework/Actor.h"
 #include "C_HitBox.h"
 #include "C_Mob.h"
-#include <cstdlib>
-
+#include "Math/RandomStream.h"
+#include "DebugMessages.h"
 // Sets default values
 AH_EnemyCharacter::AH_EnemyCharacter()
 {
@@ -49,7 +49,7 @@ AH_EnemyCharacter::AH_EnemyCharacter()
     // Set the initial movement speed and dash speed
     moveSpeed = 300.0f; // Adjust the value as needed
     dashSpeed = 2000.0f; // Adjust the value as needed
-    randomNumber = FMath::RandRange(1, 100); //1 ~ 100 random number
+    
 
 
 }
@@ -77,6 +77,13 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
         FVector playerLocation = PlayerCharacter->GetActorLocation();
         distance = FVector::Distance(enemyLocation, playerLocation);
 
+        FVector Direction = (playerLocation - enemyLocation).GetSafeNormal();
+
+        FRotator TargetRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+        FRotator CurrentRotation = GetActorRotation();
+        FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, GetWorld()->GetDeltaSeconds(), 1);
+        SetActorRotation(NewRotation);
+
         PlayerLoc = playerLocation;
         EnemyLoc = enemyLocation;
 
@@ -89,13 +96,11 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
         case EBossState::ATTACK:
             ATTACKState();
             break;
-        case EBossState::DODASH:
-            DODASHState();
-            break;
         case EBossState::DASHING:
             DASHINGState();
             break;
         case EBossState::MoveBack:
+            printf("Point");
             MoveBackward();
             break;
         default:
@@ -105,14 +110,7 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
 
 
     
-    //조건을 피격시 50퍼센트로 바꿀거임
-    // 뒤로 이동하는 상태가 아니고, 거리가 400 이하면 
-    /*if (bState != EBossState::MoveBack && distance < 400)
-    {
-        // 뒤로 300 정도 이동하는 상태로 전환하고 싶다.
-        //GetActorLocation() + dir * dashSpeed * dt * -1;
-        bState = EBossState::MoveBack;
-    }*/
+    
 }
 
 // Called to bind functionality to input
@@ -134,6 +132,9 @@ void AH_EnemyCharacter::DEFAULTState()
     if (distance < bossIsClose) {
         bState = EBossState::ATTACK;
     }
+    else if (distance > bossIsFar) {
+        bState = EBossState::DASHING;
+    }
     
 }
 
@@ -150,7 +151,7 @@ void AH_EnemyCharacter::ATTACKState()
         bState = EBossState::DEFAULT;
 }
 
-void AH_EnemyCharacter::DODASHState()
+void AH_EnemyCharacter::DASHINGState()
 {
     // Dash towards the player character
     dir = PlayerLoc - EnemyLoc;
@@ -161,24 +162,10 @@ void AH_EnemyCharacter::DODASHState()
     // Transition to DASHING state
     if (FVector::Distance(GetActorLocation(), PlayerLoc) <= bossIsClose)
     {
-        bState = EBossState::DASHING;
-    }
-}
-
-void AH_EnemyCharacter::DASHINGState()
-{
-
-
-    // 빠른 속도로 플레이어를 향해 온다
-    dir = PlayerLoc - EnemyLoc;
-    dir.Normalize();
-    FVector newLocation = GetActorLocation() + dir * dashSpeed * dt;
-    SetActorLocation(newLocation);
-
-    if (distance < 200) {
         bState = EBossState::ATTACK;
     }
 }
+
 
 //히트박스를 3초동안 내 위치 앞에 스폰 하고싶다
     //1. 히트박스 스폰오기
@@ -212,6 +199,8 @@ void AH_EnemyCharacter::SpawnHitBox()
 
 void AH_EnemyCharacter::MoveBackward()
 {
+    dir = PlayerLoc - EnemyLoc;
+    dir.Normalize();
     // 뒤로 빠르게 이동하는 로직 구현
     // 1. 방향구하기
     FVector backwardDirection = dir * -1.0f;
@@ -219,6 +208,11 @@ void AH_EnemyCharacter::MoveBackward()
     FVector newLocation = GetActorLocation() + backwardDirection * backwardSpeed * dt;
     SetActorLocation(newLocation);
     // 3. 만약 뒤로 300 이동했다면-> 뒤로이동하기 시작한 위치에서 부터 300 떨어졌다면
+
+    printf("VectorX: %f", backwardDirection.X);
+    printf("VectorY: %f", backwardDirection.Y);
+    printf("VectorZ: %f", backwardDirection.Z);
+    printf("Speed %f", backwardSpeed);
     if (distance > 600) {
         // -> 상태를 Default 로 전화하고 싶다.
         bState = EBossState::DEFAULT;
@@ -226,5 +220,24 @@ void AH_EnemyCharacter::MoveBackward()
     
 }
 
+//조건을 피격시 50퍼센트로 바꿀거임
+    // 뒤로 이동하는 상태가 아니고, 거리가 400 이하면 
+    /*if (bState != EBossState::MoveBack && distance < 400)
+    {
+        // 뒤로 300 정도 이동하는 상태로 전환하고 싶다.
+        //GetActorLocation() + dir * dashSpeed * dt * -1;
+        bState = EBossState::MoveBack;
+    }*/
 
+void AH_EnemyCharacter::Hit(float value) {
+    Super::Hit(value);
+    int randomN = FMath::RandRange(1, 100);
+    if (randomN < 50 && bState != EBossState::MoveBack) {
+         //1 ~ 100 random number
+        printf("RanN : %d",randomN);
+         // 뒤로 300 정도 이동하는 상태로 전환하고 싶다.
+         //GetActorLocation() + dir * dashSpeed * dt * -1;
+         bState = EBossState::MoveBack;
 
+    }
+}

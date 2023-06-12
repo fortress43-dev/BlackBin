@@ -11,7 +11,6 @@ enum class EBossState : uint8
 {
     DEFAULT,
     ATTACK,
-    DODASH,
     DASHING,
     MoveBack,
 };
@@ -36,6 +35,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+    virtual void Hit(float value) override;
 public:
     class ASproutBossPCharacter* player;
 
@@ -67,8 +67,6 @@ public:
     
     //기본 이동상태
     void DEFAULTState();
-    //대쉬 상태
-    void DODASHState();
     //기본 공격 상태
     void ATTACKState();
     //대쉬중
