@@ -6,6 +6,7 @@
 #include "InputActionValue.h"
 #include "C_Barrier.h"
 #include "C_HitBox.h"
+#include "D_RotManager.h"
 #include "C_Player.generated.h"
 
 #define MOB_STATEEND 100;
@@ -14,7 +15,10 @@ enum class PLAYERSTATE
 	MOVEMENT,
 	ATTACK,
 	ROLL,
-	POWERATTACK
+	BARRIER,
+	ARROW,
+	POWERATTACK,
+	POWERCHARGING
 };
 
 UCLASS()
@@ -62,6 +66,15 @@ class BLACKBIN_API AC_Player : public AC_Mob
 		class UInputAction* BarrierAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* ArrowAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* RotAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* InterAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* AttackMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -79,6 +92,8 @@ class BLACKBIN_API AC_Player : public AC_Mob
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<AC_HitBox> HitBoxClass = AC_HitBox::StaticClass();
 
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<AC_Arrow> ArrowClass = AC_Arrow::StaticClass();
 	//UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		//TObjectPtr<class UMotionWarpingComponent> MotionWarpComponent;
 public:
@@ -86,14 +101,20 @@ public:
 	PLAYERSTATE	State	= PLAYERSTATE::MOVEMENT;
 	float	StateTimer	= 0;
 	float	gagePower	= 0;
+	float	BarrierShield = 100;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	AD_RotManager* RotManager;
 	AC_Barrier* Barrier;
 	FVector StateDirectionX;
 	FVector StateDirectionY;
 	FVector2D StateVector;
+	virtual void Hit(float value) override;
 protected:
 	int Statestep		= 0;
 	virtual void Tick(float DeltaTime) override;
 	/** Called for movement input */
+	virtual void Jump() override;
+
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
@@ -106,18 +127,22 @@ protected:
 	void BarrierEnd();
 
 	void Attack();
-
 	void PowerAttackStart();
 	void PowerAttackEnd();
+	void ArrowStart();
+	void ArrowEnd();
 	void Roll();
 
 	void StateReset();
+	void StateArrow();
 	void StateAttack();
 	void StatePowerAttack();
+	void StateBarrier();
 	void StateRoll();
+	void StatePowerCharging();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-		class UBoxComponent* boxComp;
+	void RotActionStart();
+	void InterActionStart();
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

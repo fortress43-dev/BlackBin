@@ -29,8 +29,9 @@ protected:
 
 public:
 
-	UFUNCTION()
-		void PlayAnim(class AActor* overlappedActor, class AActor* otherActor);
+	virtual void NotifyActorBeginOverlap(AActor* OtherActor);
+	//UFUNCTION()
+		//void PlayAnim(class AActor* overlappedActor, class AActor* otherActor);
 
 	UPROPERTY(EditAnywhere)
 		ALevelSequenceActor* animFactory;

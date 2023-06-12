@@ -26,10 +26,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	UPROPERTY(EditAnyWhere, Category = "TopCategory|SubCategory|here")
+	UPROPERTY(EditAnyWhere, Category = "Crystals")
 	TArray<class AD_Crystal*> crystals;
 	
-	UPROPERTY(EditAnyWhere)
+	UPROPERTY(VisibleAnywhere)
 		bool isActive;
 
 	float curTime;
@@ -38,17 +38,18 @@ public:
 	UPROPERTY(EditAnyWhere)
 		float lightPower = 2;
 
-private:
-	bool IsAllCrystalShine();
-	// 연결된 다른 물체의 재질에 영향을 주기 않기 위해 dyna-inst만듬
-	UMaterialInstanceDynamic* DynamicMaterial;
 	enum StatueState {
 		normal,
 		shine
 	};
 
 	StatueState statueState = normal;
+private:
+	
+	// 연결된 다른 물체의 재질에 영향을 주기 않기 위해 dyna-inst만듬
+	UMaterialInstanceDynamic* DynamicMaterial;
+
+
+	bool IsAllCrystalShine();
 	void Change2ShineStatue();
-
-
 };

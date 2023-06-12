@@ -5,10 +5,30 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/BoxComponent.h"
+#include "C_Barrier.h"
 #include "D_Rot.generated.h"
 
+
+
+UENUM(BlueprintType)
+enum RotCollect {
+	hidden,
+	activating,
+	activated,
+	collected
+};
+
+UENUM(BlueprintType)
+enum RotState {
+	none,
+	follow,
+	fired,
+	orbitTarget,
+	explosion
+};
+
 UCLASS()
-class BLACKBIN_API AD_Rot : public AActor
+class BLACKBIN_API AD_Rot : public ACharacter
 {
 	GENERATED_BODY()
 	
@@ -19,48 +39,40 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void NotifyActorBeginOverlap(AActor* OtherActor);
+	//virtual void NotifyActorBeginCursorOver();
+
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	
-	UPROPERTY(EditAnywhere)
-		AActor* stActor;
-	UPROPERTY(EditAnywhere)
-		AActor* enActor;
-	UPROPERTY(EditAnywhere)
-		float speed = 1;
-	UPROPERTY(EditAnywhere)
-		TArray<FVector> posRefList{ {500,0,500},{250,0,-500},{0,0,500},{-250,0,-500},{-500,0,500} };
-	UPROPERTY(EditAnywhere)
-		int lineResolution = 5;
-	UPROPERTY(EditAnywhere)
-		TArray<FVector> LinePoseList;
-	bool isArrived;
-	float dstVal;
 
-	UPROPERTY(EditAnywhere)
-	FVector st  {-500,0,0};
-	UPROPERTY(EditAnywhere)
-	FVector mid {0,0,500};
-	UPROPERTY(EditAnywhere)
-	FVector en  {500,0,0};
 
 	AActor* target;
+	RotCollect rotCollect = RotCollect::hidden;
+	RotState rotState = RotState::none;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* boxComp;
+	UPROPERTY(EditAnywhere)
+		bool onCollectKey = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		bool usingAIMove = false;
 
 
-
+	void SetAIMove();
+	void InterAction();
 private:
-		float myDeltaTime;
-		UStaticMeshComponent* rot;
-		UBoxComponent* MyBoxComponent;
-		float curTime = 0;
-		FVector Lerp3Points(FVector st, FVector mid, FVector en, float t);
-		void InitRot();
 
-		void StoreLerpPoints(int);
-		void DrawLerpLine();
-		void DrawGuideLine();
+	//Rot Activating Animation
+	float curTime;
+	float speed = 10;
+	float dt;
+	FVector p1;
+	FVector p2;
+	float rotActiveHeight = 100.0f;
+	void ActivateRot();
+	void CollectActivatedRot();
 };
 
 
