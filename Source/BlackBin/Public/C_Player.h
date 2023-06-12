@@ -6,6 +6,7 @@
 #include "InputActionValue.h"
 #include "C_Barrier.h"
 #include "C_HitBox.h"
+#include "D_RotManager.h"
 #include "C_Player.generated.h"
 
 #define MOB_STATEEND 100;
@@ -68,6 +69,12 @@ class BLACKBIN_API AC_Player : public AC_Mob
 		class UInputAction* ArrowAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* RotAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* InterAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* AttackMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -95,6 +102,8 @@ public:
 	float	StateTimer	= 0;
 	float	gagePower	= 0;
 	float	BarrierShield = 100;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	AD_RotManager* RotManager;
 	AC_Barrier* Barrier;
 	FVector StateDirectionX;
 	FVector StateDirectionY;
@@ -131,6 +140,9 @@ protected:
 	void StateBarrier();
 	void StateRoll();
 	void StatePowerCharging();
+
+	void RotActionStart();
+	void InterActionStart();
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

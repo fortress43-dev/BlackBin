@@ -4,189 +4,123 @@
 #include "D_Rot.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "DrawDebugHelpers.h"
-#define Lerp FMath::Lerp
+#include "Math/UnrealMathUtility.h"
+#include "DebugMessages.h"
+#include "Kismet/GameplayStatics.h"
+#include "C_Barrier.h"
+
+
 
 // Sets default values
 AD_Rot::AD_Rot()
 {
-	InitRot();
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+	return;
+	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("boxCompCollision"));
+	SetRootComponent(boxComp);
+	boxComp->SetGenerateOverlapEvents(true);
+	boxComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	//boxComp->SetCollisionObjectType(ECC_GameTraceChannel1);
+	//boxComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+	//boxComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap);
+
+	//boxComp->SetCollisionProfileName(TEXT(""));
 }
 
 // Called when the game starts or when spawned
 void AD_Rot::BeginPlay()
 {
 	Super::BeginPlay();
-	//리스트에 사용할 포지션을 넣어놓자
-	StoreLerpPoints(lineResolution);
+	p1 = GetActorLocation();
+	p2 = FVector(p1.X, p1.Y, p1.Z + rotActiveHeight);
 
-	//return;
-	DrawGuideLine();
-
+	// rotManager setting
+	//rotManager = Cast<AD_RotManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AD_RotManager::StaticClass()));
 }
+
+void AD_Rot::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	FString name = OtherActor->GetName();
+	AC_Barrier* barrier= Cast<AC_Barrier>(OtherActor);
+	if (barrier) {
+		rotCollect = RotCollect::activating;
+		printf("Rot was hitted with %s", *name);
+	}
+	UE_LOG(LogTemp, Warning, TEXT("collide with : %s"), *name);
+}
+
 
 // Called every frame
 void AD_Rot::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-
-
-
-	// drawLine
-	FVector lastPos;
-	FVector curPos;
-	float t = 0;
-	float dt = 1 / 10.0f;
-
-	for (int i = 0; i < 10; i++)
+	dt = DeltaTime;
+	switch (rotCollect)
 	{
-		curPos = Lerp3Points(st, mid, en, t);
-		if (t != 0) { DrawDebugLine(GetWorld(), lastPos, curPos, FColor(255, 0, 0), true); }
-		LinePoseList.Add(curPos);
-		lastPos = curPos;
-		t += dt;
+	case hidden:
+
+		break;
+	case activating:
+		ActivateRot();
+		break;
+	case activated:
+		CollectActivatedRot();
+		break;
+	case collected:
+		// AI Move기능을 켜준다
+		usingAIMove = true;
+		break;
+	default:
+		break;
 	}
 
-	//DrawLerpLine();
-
-	//moverot 
-	FVector rotPos = GetActorLocation();
-	curTime += DeltaTime * speed;
-	if (curTime < 1.0f) {
-		Lerp3Points(st,mid,en,curTime);
-	}
-	else { curTime = 0; }
 }
 /// <summary>
-/// this Function is for short Test for making Lerp Curve
+/// this Function is for calling from player's class with input system
 /// </summary>
-/// <param name="stPos"></param>
-/// <param name="midPos"></param>
-/// <param name="enPos"></param>
-/// <param name="t"></param>
-FVector AD_Rot::Lerp3Points(FVector stPos, FVector midPos, FVector enPos, float t)
+void AD_Rot::InterAction()
 {
-	FVector curPos;
-	FVector tmp1;
-	FVector tmp2;
-	tmp1   = FMath::Lerp(stPos, midPos, t);
-	tmp2   = FMath::Lerp(midPos, enPos, t);
-	curPos = FMath::Lerp(tmp1, tmp2, t);
-	
-	SetActorLocation(curPos);
-	return curPos;
+	usingAIMove = true;
 }
 
-/// <summary>
-/// Create BoxComp
-/// </summary>
-inline void AD_Rot::InitRot()
+void AD_Rot::ActivateRot()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	curTime += dt;
+	//1초 안에 rot이 높이 올라간다
+	FVector newPos = FMath::Lerp(p1, p2, curTime);
+	SetActorLocation(newPos);
 
-	MyBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
-	//MyBoxComponent->InitBoxExtent(FVector(50, 50, 50));
-	RootComponent = MyBoxComponent;
+	if (curTime > 1.0f) {
+		rotCollect = RotCollect::activated;
+		curTime = 0;
+		//rotManager->curRot = this;
 
-	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMesh(TEXT("/Script/Engine.StaticMesh'/Engine/BasicShapes/Cube.Cube'"));
+		// for proto
+		rotCollect = RotCollect::collected;
+		rotState = RotState::follow;
 
-	rot = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Rot"));
-	rot->SetupAttachment(RootComponent);
-	if (tempMesh.Succeeded()) {
-		rot->SetStaticMesh(tempMesh.Object);
+		print("rot Collect Success / rot is following you");
 	}
 }
 
-/// <summary>
-/// this algorithm is wrong , for some elements in here i keep it live
-/// </summary>
-/// <param name="resolution"></param>
-void AD_Rot::StoreLerpPoints(int resolution)
+void AD_Rot::CollectActivatedRot()
 {
-	float dt = 1.0f / resolution;
-	float t = 0;
-	if (posRefList.Num() < 3) return;
-	
-	FVector pos;
-	FVector p1 = posRefList[0];
-	FVector p2 = posRefList[1];
-	FVector p3 = posRefList[2];
-	FVector p4 = posRefList[3];
-
-	FVector pp1;
-	FVector pp2;
-	FVector pp3;
-
-	FVector ppp1;
-	FVector ppp2;
-
-	
-	for (int j = 0; j < resolution; j++)
-	{
-		t = dt * j; // DeltaTime과 같은 원리
-		pp1 = Lerp(p1, p2, t);
-		pp2 = Lerp(p2, p3, t);
-		pp3 = Lerp(p3, p4, t);
-
-		ppp1 = Lerp(pp1, pp2, t);
-		ppp2 = Lerp(pp2, pp3, t);
-
-		pos = Lerp(ppp1, ppp2, t);
-
-		LinePoseList.Add(pos);
-		if (j != 0) {
-			DrawDebugLine(GetWorld(), LinePoseList[j-1], LinePoseList[j], FColor(255, 0, 0), true, -1, 0, 10);
-		}
+	// rot의 위치를 player근처 랜덤한 위치에 배치하고
+	// navi를 켠다
+	// UI를 띄운다
+	if (onCollectKey) {
+		//SetActorLocation(p1);
+		rotCollect = RotCollect::collected;
+		rotState = RotState::follow;
 		
-	}
+		print("rot Collect Success / rot is following you");
 
-
-
-
-	return;
-	/*
-	for(int i = 2; i < posRefList.Num(); i++) {
-		FVector pos;
-		FVector tmp1;
-		FVector tmp2;
-		
-		for (int j = 0; j < resolution; j++)
-		{
-			t = dt * j; // DeltaTime과 같은 원리
-			tmp1 = FMath::Lerp(posRefList[i - 2], posRefList[i - 1], t);
-			tmp2 = FMath::Lerp(posRefList[i - 1], posRefList[i], t);
-			pos  = FMath::Lerp(tmp1, tmp2, t);
-			LinePoseList.Add(pos);
-			DrawDebugString(GetWorld(), FVector::ZeroVector, TEXT("OKAY"));
-		}
-	}
-	*/
-}
-
-
-
-void AD_Rot::DrawLerpLine()
-{
-	if (LinePoseList.Num() < 2)return;
-	for (int i = 1; i < LinePoseList.Num(); i++)
-	{
-		FVector LineStart = LinePoseList[i - 1];
-		FVector LineEnd = LinePoseList[i];
-
-		DrawDebugLine(GetWorld(), LineStart, LineEnd, FColor(255, 0, 0), true, -1, 0, 10);
 	}
 }
 
-void AD_Rot::DrawGuideLine()
-{
-	DrawDebugSphere(GetWorld(), posRefList[0], 15.0f, 3, FColor::Red, true);
-	for (int i = 1; i < posRefList.Num(); i++)
-	{
-		FVector LineStart = posRefList[i - 1];
-		FVector LineEnd   = posRefList[i    ];
 
-		DrawDebugSphere(GetWorld(), posRefList[i], 15.0f, 10, FColor::Red, true);
-		DrawDebugLine(GetWorld(), LineStart, LineEnd, FColor::Blue, true, -1, 0, 1);
-	}
-}
+
+
+
+

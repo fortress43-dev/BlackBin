@@ -7,6 +7,7 @@
 #include "Materials/MaterialInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
+#include "DebugMessages.h"
 
 // Sets default values
 AD_Crystal::AD_Crystal()
@@ -33,18 +34,19 @@ void AD_Crystal::BeginPlay()
 void AD_Crystal::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	
 	if (isShine == true) { 
 		curTime += DeltaTime;
 		ShineCrystal(); 
 	}
-	
 }
 
 void AD_Crystal::NotifyActorBeginOverlap(AActor* OtherActor) {
 	Super::NotifyActorBeginOverlap(OtherActor);
 	// ∫˚¿ª π‡»˘¥Ÿ
 	isShine = true;
-	
+	print("Light Barrier collided on Crystal");
 	// ¿Ã∆Â∆Æ∞° Ω««‡µ»¥Ÿ
 	FVector EffectLocation = GetActorLocation();
 	if (NS_CrystalEffect) {
