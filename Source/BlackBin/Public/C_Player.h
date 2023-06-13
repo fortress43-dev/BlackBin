@@ -133,7 +133,12 @@ protected:
 	void StatePowerAttack();
 	void StateBarrier();
 	void StateRoll();
-	void StatePowerCharging();
+	void StatePowerCharging(); 
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerAttack")
+	void CheckAttackPoint();
+	UFUNCTION(BlueprintCallable, Category = "PlayerAttack")
+	void CheckAttackCountinue();
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

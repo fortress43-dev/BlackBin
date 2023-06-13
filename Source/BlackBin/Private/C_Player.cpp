@@ -76,6 +76,13 @@ AC_Player::AC_Player()
 	zoomTarget = CameraBoom->TargetArmLength;
 }
 
+void AC_Player::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	(GetMesh()->GetAnimInstance())->AddDynamic(this, &AC_Player::OnAttackMontageEnded);
+}
+
 void AC_Player::BeginPlay()
 {
 	// Call the base class  
@@ -196,7 +203,7 @@ void AC_Player::Move(const FInputActionValue& Value)
 		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-
+		
 
 		// add movement 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
@@ -247,8 +254,24 @@ void AC_Player::Attack()
 {
 	if (Controller != nullptr)
 	{
-		if (State == PLAYERSTATE::MOVEMENT)
+		if (State == PLAYERSTATE::MOVEMENT || State == PLAYERSTATE::ATTACK)
 		{
+			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh(); // YourCharacter는 애니메이션을 가진 캐릭터 또는 액터의 인스턴스입니다.
+			if (SkeletalMeshComponent)
+			{
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				if (AnimInstance)
+				{
+					FAnimMontageInstance* MontageInstance = AnimInstance->GetActiveMontageInstance();
+					if (MontageInstance)
+					{
+						// 현재 노티파이 가져오기
+						MontageInstance->GetCurrentSection();
+						// 노티파이 처리
+						// ...
+					}
+				}
+			}
 			//IsAttack = true;
 			//FMotionWarpingTarget Target = {};
 			//Target.Name = FName("Target");
@@ -265,7 +288,7 @@ void AC_Player::Attack()
 
 			//// get right vector 
 			//const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
+			
 			Statestep = 0;
 			State = PLAYERSTATE::ATTACK;
 
@@ -329,7 +352,7 @@ void AC_Player::Roll()
 
 
 		//MotionWarpComponent->AddOrUpdateWarpTarget(Target);
-		//PlayAnimMontage(RollMontage);
+		PlayAnimMontage(RollMontage);
 		//FVector ForVector = FollowCamera->GetComponentRotation().Vector() *800;
 		//StateVector = FVector2D(ForVector);
 		boxComp->SetCollisionProfileName(TEXT("NoCollision"));
@@ -343,14 +366,12 @@ void AC_Player::Roll()
 		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-
 		// add movement 
 		AddMovementInput(ForwardDirection, StateVector.Y);
 		AddMovementInput(RightDirection, StateVector.X);
 
 		StateDirectionX = ForwardDirection;
 		StateDirectionY = RightDirection;
-
 		GetCharacterMovement()->Velocity.X = YawRotation.RotateVector(FVector(StateVector.Y, StateVector.X, 0)).X * 800;
 		GetCharacterMovement()->Velocity.Y = YawRotation.RotateVector(FVector(StateVector.Y, StateVector.X, 0)).Y*800;
 	}
@@ -589,4 +610,13 @@ void AC_Player::Hit(float value)
 	{ 
 		Super::Hit(value);
 	}
+}
+
+void AC_Player::CheckAttackPoint()
+{
+
+}
+void AC_Player::CheckAttackCountinue()
+{
+
 }

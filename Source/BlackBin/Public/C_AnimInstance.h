@@ -26,4 +26,9 @@ class BLACKBIN_API UC_AnimInstance : public UAnimInstance
 
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 			bool IsFall;
+
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
+			bool ShouldMove;
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
+			FVector Velocity;
 };
