@@ -6,14 +6,18 @@
 #include "GameFramework/Character.h"
 #include "H_EnemyCharacter.generated.h"
 
+
 UENUM(BlueprintType)
-enum class EBossState : uint8
+enum class EBossMovingState : uint8
 {
-    IDLE,
-    DEFAULT,
-    ATTACK,
-    DASHING,
-    MoveBack,
+    MovingBackward,
+    MovingForward,
+    MovingSide,
+    Staying,
+    Attacking,
+    Dash,
+    BackStep,
+
 };
 
 UCLASS()
@@ -60,24 +64,25 @@ public:
         int32 randomNumber;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         int NumberPercentage = 30;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        int randDeg;
 
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = FSM)
-        EBossState bState = EBossState::IDLE;
+   
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = STATE)
+        EBossMovingState MoveState = EBossMovingState::Dash;
 
-
-    void MoveBackward();
-
-    void IDLEState();
-    
-    //기본 이동상태
-    void DEFAULTState();
-    //기본 공격 상태
-    void ATTACKState();
-    //대쉬중
-    void DASHINGState();
-
+    void MovingBackward();
+    void MovingForward();
+    void MovingSide();
+    void Staying();
+    void Attacking();
+    void Dash();
+    void BackStep();
+    void Checking();
     void SpawnHitBox();
+
+    EBossMovingState GetArrayWeight(const TArray<EBossMovingState>& ArrayState, const TArray<float>& ArrayWeight);
 
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
@@ -90,9 +95,12 @@ private:
     float distance;
     float playerDistance;
     float ct = 0;
-    float backwardSpeed = 600;
+    float backwardSpeed = 800;
     bool IsBackStep;
     float ct1 = 0;
+    TArray<EBossMovingState> arrayState;
+    TArray<float> arrayWeight;
+
 };
 
 

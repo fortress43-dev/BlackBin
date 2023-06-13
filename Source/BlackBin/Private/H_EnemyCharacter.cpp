@@ -14,6 +14,7 @@
 #include "C_Mob.h"
 #include "Math/RandomStream.h"
 #include "DebugMessages.h"
+
 // Sets default values
 AH_EnemyCharacter::AH_EnemyCharacter()
 {
@@ -47,8 +48,8 @@ AH_EnemyCharacter::AH_EnemyCharacter()
     dir = FVector::ZeroVector;
 
     // Set the initial movement speed and dash speed
-    moveSpeed = 300.0f; // Adjust the value as needed
-    dashSpeed = 2000.0f; // Adjust the value as needed
+    moveSpeed = 100.0f; // Adjust the value as needed
+    dashSpeed = 600.0f; // Adjust the value as needed
     
 
 
@@ -70,6 +71,8 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
     ct += DeltaTime;
     // Find the player character in the world
     ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(this, 0);
+
+    
     // 적과 나의 방향과 거리를 알고싶다.
     if (PlayerCharacter)
     {
@@ -89,24 +92,29 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
         PlayerLoc = playerLocation;
         EnemyLoc = enemyLocation;
 
-        // Update the state
-        switch (bState)
+        Checking();
+        switch (MoveState)
         {
-        case EBossState::IDLE:
-            IDLEState();
+        case EBossMovingState::Dash:
+            Dash();       
             break;
-        case EBossState::DEFAULT:
-            DEFAULTState();
+        case EBossMovingState::MovingBackward:
+            MovingBackward();
             break;
-        case EBossState::ATTACK:
-            ATTACKState();
+        case EBossMovingState::MovingForward:
+            MovingForward();
             break;
-        case EBossState::DASHING:
-            DASHINGState();
+        case EBossMovingState::MovingSide:
+            MovingSide();
             break;
-        case EBossState::MoveBack:
-            
-            MoveBackward();
+        case EBossMovingState::Staying:
+            Staying();
+            break;
+        case EBossMovingState::Attacking:
+            Attacking();
+            break;
+        case EBossMovingState::BackStep:
+            BackStep();
             break;
         default:
             break;
@@ -114,6 +122,7 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
     }
 
 
+  
     
     
 }
@@ -126,43 +135,49 @@ void AH_EnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 }
 
 
-void AH_EnemyCharacter::IDLEState() {
-    dir = FVector::ZeroVector;
-    if (distance < bossStanceMode) {
-        bState = EBossState::DASHING;
-    }
+
+void AH_EnemyCharacter::MovingBackward()
+{
+    dir = PlayerLoc - EnemyLoc;
+    dir.Normalize();
+    FVector newLocation = GetActorLocation() + dir * moveSpeed * dt * -1;
+    SetActorLocation(newLocation);
 }
 
-void AH_EnemyCharacter::DEFAULTState()
+void AH_EnemyCharacter::MovingForward()
 {
     dir = PlayerLoc - EnemyLoc;
     dir.Normalize();
     FVector newLocation = GetActorLocation() + dir * moveSpeed * dt;
     SetActorLocation(newLocation);
-
-    if (distance < bossIsClose) {
-        bState = EBossState::ATTACK;
-    }
-    else if (distance > bossIsFar && distance < bossStanceMode) {
-        bState = EBossState::DASHING;
-    }
-    
 }
 
-void AH_EnemyCharacter::ATTACKState()
+void AH_EnemyCharacter::MovingSide()
 {
-    // Stay idle, do nothing
+    /*randDeg = FMath::RandRange(-90, 90);
+    //에너미 위치랑 플레이어 위치에서 반지름의 거리만큼 돌리고 싶다?
+    FRotator Rot = GetCharacterMovement()->GetLastUpdateRotation();
+    Rot.Pitch = 0;
+    Rot.Roll = 0;
+    Rot.Yaw -= randDeg;*/
+    
+    printf("Rotate");
+}
+
+void AH_EnemyCharacter::Staying()
+{
+    dir = FVector::ZeroVector;
+}
+
+void AH_EnemyCharacter::Attacking()
+{
     dir = FVector::ZeroVector;
 
     //기본공격을 함
     SpawnHitBox();
-
-    //거리가 300 이상이되면 DEFAULT 이동을 한다
-    if (distance > bossIsClose)
-        bState = EBossState::DEFAULT;
 }
 
-void AH_EnemyCharacter::DASHINGState()
+void AH_EnemyCharacter::Dash()
 {
     // Dash towards the player character
     dir = PlayerLoc - EnemyLoc;
@@ -170,11 +185,87 @@ void AH_EnemyCharacter::DASHINGState()
     FVector newLocation = GetActorLocation() + dir * dashSpeed * dt;
     SetActorLocation(newLocation);
 
-    // Transition to DASHING state
-    if (FVector::Distance(GetActorLocation(), PlayerLoc) <= bossIsClose)
+}
+
+void AH_EnemyCharacter::BackStep()
+{
+    dir = PlayerLoc - EnemyLoc;
+    dir.Normalize();
+    // 뒤로 빠르게 이동하는 로직 구현
+    // 1. 방향구하기
+    FVector backwardDirection = dir * -1.0f;
+    // 2. 이동하기
+    FVector newLocation = GetActorLocation() + backwardDirection * backwardSpeed * dt;
+    SetActorLocation(newLocation);
+    // 3. 만약 뒤로 300 이동했다면-> 뒤로이동하기 시작한 위치에서 부터 300 떨어졌다면
+
+    /*printf("VectorX: %f", backwardDirection.X);
+    printf("VectorY: %f", backwardDirection.Y);
+    printf("VectorZ: %f", backwardDirection.Z);
+    printf("Speed %f", backwardSpeed);*/
+}
+
+void AH_EnemyCharacter::Checking()
+{
+	if (ct >  2){
+        //만약 거리가 100보다 멀다면
+		if (distance > 1000) {
+            //세개의 스테이트 중에서
+            arrayState = { EBossMovingState::Dash, EBossMovingState::MovingForward, EBossMovingState::MovingSide };
+            arrayWeight = { 0.3f, 0.3f, 0.4f };
+            //가중치를 계산해서 하나를 뽑아라
+			MoveState = GetArrayWeight(arrayState, arrayWeight);
+		}
+        else if(distance < 1500 && distance > 300){
+
+            arrayState = { EBossMovingState::MovingBackward, EBossMovingState::MovingForward, EBossMovingState::MovingSide};
+            arrayWeight = { 0.3f, 0.3f, 0.4f };
+
+            MoveState = GetArrayWeight(arrayState, arrayWeight);
+
+        }
+        //
+        else {
+            arrayState = { EBossMovingState::MovingBackward, EBossMovingState::Attacking, EBossMovingState::BackStep};
+            arrayWeight = { 0.3f, 0.3f, 0.4f };
+
+            MoveState = GetArrayWeight(arrayState, arrayWeight);
+        }
+        printf("%d", MoveState);
+        ct = 0;
+	}
+}
+
+EBossMovingState AH_EnemyCharacter::GetArrayWeight(const TArray<EBossMovingState>& ArrayState, const TArray<float>& ArrayWeight)
+{
+    // 가중치 배열의 합 구하기
+    float TotalWeight = 0.0f;
+    for (float Weight : ArrayWeight)
     {
-        bState = EBossState::ATTACK;
+        TotalWeight += Weight;
     }
+
+    // 0부터 합까지의 구간을 생성하여 랜덤 값을 선택
+    float RandomValue = FMath::FRandRange(0.0f, TotalWeight);
+
+    // 가중치에 따라 요소 선택
+    float AccumulatedWeight = 0.0f;
+    UE_LOG(LogTemp, Warning, TEXT("Selected Start!"));
+
+    for (int32 Index = 0; Index < ArrayWeight.Num(); ++Index)
+    {
+        AccumulatedWeight += ArrayWeight[Index];
+        if (RandomValue <= AccumulatedWeight)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Selected Index : %d"), Index);
+            return ArrayState[Index];
+
+        }
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("Not Selected Index..."));
+	return EBossMovingState::Dash;
+
 }
 
 
@@ -207,30 +298,6 @@ void AH_EnemyCharacter::SpawnHitBox()
     }
 }
 
-
-void AH_EnemyCharacter::MoveBackward()
-{
-    dir = PlayerLoc - EnemyLoc;
-    dir.Normalize();
-    // 뒤로 빠르게 이동하는 로직 구현
-    // 1. 방향구하기
-    FVector backwardDirection = dir * -1.0f;
-    // 2. 이동하기
-    FVector newLocation = GetActorLocation() + backwardDirection * backwardSpeed * dt;
-    SetActorLocation(newLocation);
-    // 3. 만약 뒤로 300 이동했다면-> 뒤로이동하기 시작한 위치에서 부터 300 떨어졌다면
-
-    /*printf("VectorX: %f", backwardDirection.X);
-    printf("VectorY: %f", backwardDirection.Y);
-    printf("VectorZ: %f", backwardDirection.Z);
-    printf("Speed %f", backwardSpeed);*/
-    if (distance > 600) {
-        // -> 상태를 Default 로 전화하고 싶다.
-        bState = EBossState::DEFAULT;
-    }
-    
-}
-
 //조건을 피격시 50퍼센트로 바꿀거임
     // 뒤로 이동하는 상태가 아니고, 거리가 400 이하면 
     /*if (bState != EBossState::MoveBack && distance < 400)
@@ -243,12 +310,12 @@ void AH_EnemyCharacter::MoveBackward()
 void AH_EnemyCharacter::Hit(float value) {
     Super::Hit(value);
     int randomN = FMath::RandRange(1, 100);
-    if (randomN < NumberPercentage && bState != EBossState::MoveBack) {
+    if (randomN < NumberPercentage) {
          //1 ~ 100 random number
         printf("RanN : %d",randomN);
          // 뒤로 300 정도 이동하는 상태로 전환하고 싶다.
          //GetActorLocation() + dir * dashSpeed * dt * -1;
-         bState = EBossState::MoveBack;
+         
 
     }
     else printf("RanN : %d", randomN);
