@@ -23,16 +23,13 @@ AC_Player::AC_Player()
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
-	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
-	boxComp->SetupAttachment(GetCapsuleComponent());
-
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	//boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
-	//boxComp->SetupAttachment(GetCapsuleComponent());
+	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
+	boxComp->SetupAttachment(GetCapsuleComponent());
 	boxComp->SetCollisionProfileName(TEXT("Mob"));
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
@@ -274,7 +271,6 @@ void AC_Player::Attack()
 
 			// get forward vector
 			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
 			// get right vector 
 			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -295,7 +291,7 @@ void AC_Player::Attack()
 			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			FRotator rotator = Controller->GetControlRotation();
 			FVector  SpawnLocation = GetActorLocation();
-			FVector	 addLoc = GetActorRightVector() * 100;
+			FVector	 addLoc = GetActorRightVector() * 50;
 			SpawnLocation.Z -= 50.f;
 			AC_Arrow* Arrow = GetWorld()->SpawnActor<AC_Arrow>(ArrowClass, SpawnLocation + addLoc, rotator, SpawnParams);
 			if (Arrow)
@@ -489,7 +485,7 @@ void AC_Player::StateRoll()
 	{
 	case 0:
 		GetCharacterMovement()->MaxWalkSpeed = 500;
-		if (StateTimer++ < 60)
+		if (StateTimer++ < 10)
 			break;
 			StateTimer = 0;
 			Statestep++;

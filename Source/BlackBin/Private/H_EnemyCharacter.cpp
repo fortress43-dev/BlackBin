@@ -48,7 +48,7 @@ AH_EnemyCharacter::AH_EnemyCharacter()
 
     // Set the initial movement speed and dash speed
     moveSpeed = 300.0f; // Adjust the value as needed
-    dashSpeed = 2000.0f; // Adjust the value as needed
+    dashSpeed = 1200.0f; // Adjust the value as needed
     
 
 
@@ -77,12 +77,24 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
         FVector playerLocation = PlayerCharacter->GetActorLocation();
         distance = FVector::Distance(enemyLocation, playerLocation);
 
+        FVector Direction = (playerLocation - enemyLocation).GetSafeNormal();
+
+        FRotator TargetRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+        FRotator CurrentRotation = GetActorRotation();
+        FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, GetWorld()->GetDeltaSeconds(), 2);
+        NewRotation.Pitch = 0;
+        NewRotation.Roll = 0;
+        SetActorRotation(NewRotation);
+
         PlayerLoc = playerLocation;
         EnemyLoc = enemyLocation;
 
         // Update the state
         switch (bState)
         {
+        case EBossState::IDLE:
+            IDLEState();
+            break;
         case EBossState::DEFAULT:
             DEFAULTState();
             break;
@@ -93,7 +105,7 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
             DASHINGState();
             break;
         case EBossState::MoveBack:
-            printf("Point");
+            
             MoveBackward();
             break;
         default:
@@ -114,6 +126,12 @@ void AH_EnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 }
 
 
+void AH_EnemyCharacter::IDLEState() {
+    dir = FVector::ZeroVector;
+    if (distance < bossStanceMode) {
+        bState = EBossState::DASHING;
+    }
+}
 
 void AH_EnemyCharacter::DEFAULTState()
 {
@@ -125,7 +143,7 @@ void AH_EnemyCharacter::DEFAULTState()
     if (distance < bossIsClose) {
         bState = EBossState::ATTACK;
     }
-    else if (distance > bossIsFar) {
+    else if (distance > bossIsFar && distance < bossStanceMode) {
         bState = EBossState::DASHING;
     }
     
@@ -202,11 +220,11 @@ void AH_EnemyCharacter::MoveBackward()
     SetActorLocation(newLocation);
     // 3. 만약 뒤로 300 이동했다면-> 뒤로이동하기 시작한 위치에서 부터 300 떨어졌다면
 
-    printf("VectorX: %f", backwardDirection.X);
+    /*printf("VectorX: %f", backwardDirection.X);
     printf("VectorY: %f", backwardDirection.Y);
     printf("VectorZ: %f", backwardDirection.Z);
-    printf("Speed %f", backwardSpeed);
-    if (distance > 600) {
+    printf("Speed %f", backwardSpeed);*/
+    if (distance > 400) {
         // -> 상태를 Default 로 전화하고 싶다.
         bState = EBossState::DEFAULT;
     }
@@ -225,7 +243,7 @@ void AH_EnemyCharacter::MoveBackward()
 void AH_EnemyCharacter::Hit(float value) {
     Super::Hit(value);
     int randomN = FMath::RandRange(1, 100);
-    if (randomN < 50 && bState != EBossState::MoveBack) {
+    if (randomN < NumberPercentage && bState != EBossState::MoveBack) {
          //1 ~ 100 random number
         printf("RanN : %d",randomN);
          // 뒤로 300 정도 이동하는 상태로 전환하고 싶다.
@@ -233,4 +251,5 @@ void AH_EnemyCharacter::Hit(float value) {
          bState = EBossState::MoveBack;
 
     }
+    else printf("RanN : %d", randomN);
 }
