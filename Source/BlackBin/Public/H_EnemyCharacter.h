@@ -66,7 +66,10 @@ public:
         int NumberPercentage = 30;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         int randDeg;
-
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<EBossMovingState> arrayState;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<float> arrayWeight;
 
    
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = STATE)
@@ -98,8 +101,6 @@ private:
     float backwardSpeed = 600;
     bool IsBackStep;
     float ct1 = 0;
-    TArray<EBossMovingState> arrayState;
-    TArray<float> arrayWeight;
     int randomN;
 };
 

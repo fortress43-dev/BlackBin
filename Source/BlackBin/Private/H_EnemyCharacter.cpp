@@ -31,9 +31,7 @@ AH_EnemyCharacter::AH_EnemyCharacter()
     GetCapsuleComponent()->InitCapsuleSize(42.0f, 96.0f);
 
     // Create mesh component and attach it to the root component
-    meshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh"));
-    meshComp->SetupAttachment(GetCapsuleComponent());
-
+    
     // Set the character movement mode to use walking
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
     GetCharacterMovement()->bUseControllerDesiredRotation = true;
