@@ -22,6 +22,6 @@ void AD_CrystalLight::BeginPlay()
 void AD_CrystalLight::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	// 태어나면 크기가 일정속도로 커진다
 }
 
