@@ -49,8 +49,9 @@ AH_EnemyCharacter::AH_EnemyCharacter()
 
     // Set the initial movement speed and dash speed
     moveSpeed = 100.0f; // Adjust the value as needed
-    dashSpeed = 600.0f; // Adjust the value as needed
+    dashSpeed = 700.0f; // Adjust the value as needed
     
+    randomN = FMath::RandRange(1, 100);
 
 
 }
@@ -154,6 +155,18 @@ void AH_EnemyCharacter::MovingForward()
 
 void AH_EnemyCharacter::MovingSide()
 {
+
+    if (randomN > 50) {
+        // 오른쪽으로 이동하는 로직 구현
+        FVector NewLocation = GetActorLocation() + FVector(1.0f, 0.0f, 0.0f) * moveSpeed * dt;
+            SetActorLocation(NewLocation); // 보스의 위치를 새로운 위치로 설정
+    }
+    else {
+        //왼쪽으로 이동하면
+        FVector NewLocation = GetActorLocation() + FVector(-1.0f, 0.0f, 0.0f) * moveSpeed * dt;
+        SetActorLocation(NewLocation); // 보스의 위치를 새로운 위치로 설정
+    }
+    printf("Rotate");
     /*randDeg = FMath::RandRange(-90, 90);
     //에너미 위치랑 플레이어 위치에서 반지름의 거리만큼 돌리고 싶다?
     FRotator Rot = GetCharacterMovement()->GetLastUpdateRotation();
@@ -161,7 +174,7 @@ void AH_EnemyCharacter::MovingSide()
     Rot.Roll = 0;
     Rot.Yaw -= randDeg;*/
     
-    printf("Rotate");
+    
 }
 
 void AH_EnemyCharacter::Staying()
@@ -179,16 +192,24 @@ void AH_EnemyCharacter::Attacking()
 
 void AH_EnemyCharacter::Dash()
 {
-    // Dash towards the player character
-    dir = PlayerLoc - EnemyLoc;
-    dir.Normalize();
-    FVector newLocation = GetActorLocation() + dir * dashSpeed * dt;
-    SetActorLocation(newLocation);
+    if (MoveState == EBossMovingState::Dash && distance > 200) {
+        // Dash towards the player character
+        dir = PlayerLoc - EnemyLoc;
+        dir.Normalize();
+        FVector newLocation = GetActorLocation() + dir * dashSpeed * dt;
+        SetActorLocation(newLocation);
+    }
+    else {
+        MoveState = EBossMovingState::Attacking;
+    }
 
 }
 
 void AH_EnemyCharacter::BackStep()
 {
+
+    if (MoveState == EBossMovingState::BackStep && distance < 900) 
+    {
     dir = PlayerLoc - EnemyLoc;
     dir.Normalize();
     // 뒤로 빠르게 이동하는 로직 구현
@@ -197,6 +218,7 @@ void AH_EnemyCharacter::BackStep()
     // 2. 이동하기
     FVector newLocation = GetActorLocation() + backwardDirection * backwardSpeed * dt;
     SetActorLocation(newLocation);
+    }
     // 3. 만약 뒤로 300 이동했다면-> 뒤로이동하기 시작한 위치에서 부터 300 떨어졌다면
 
     /*printf("VectorX: %f", backwardDirection.X);
@@ -212,14 +234,14 @@ void AH_EnemyCharacter::Checking()
 		if (distance > 1000) {
             //세개의 스테이트 중에서
             arrayState = { EBossMovingState::Dash, EBossMovingState::MovingForward, EBossMovingState::MovingSide };
-            arrayWeight = { 0.3f, 0.3f, 0.4f };
+            arrayWeight = { 0.4f, 0.2f, 0.2f };
             //가중치를 계산해서 하나를 뽑아라
 			MoveState = GetArrayWeight(arrayState, arrayWeight);
 		}
-        else if(distance < 1500 && distance > 300){
+        else if(distance < 1000 && distance > 300){
 
             arrayState = { EBossMovingState::MovingBackward, EBossMovingState::MovingForward, EBossMovingState::MovingSide};
-            arrayWeight = { 0.3f, 0.3f, 0.4f };
+            arrayWeight = { 0.4f, 0.2f, 0.4f };
 
             MoveState = GetArrayWeight(arrayState, arrayWeight);
 
@@ -227,7 +249,7 @@ void AH_EnemyCharacter::Checking()
         //
         else {
             arrayState = { EBossMovingState::MovingBackward, EBossMovingState::Attacking, EBossMovingState::BackStep};
-            arrayWeight = { 0.3f, 0.3f, 0.4f };
+            arrayWeight = { 0.1f, 0.5f, 0.4f };
 
             MoveState = GetArrayWeight(arrayState, arrayWeight);
         }
@@ -309,7 +331,6 @@ void AH_EnemyCharacter::SpawnHitBox()
 
 void AH_EnemyCharacter::Hit(float value) {
     Super::Hit(value);
-    int randomN = FMath::RandRange(1, 100);
     if (randomN < NumberPercentage) {
          //1 ~ 100 random number
         printf("RanN : %d",randomN);

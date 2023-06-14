@@ -95,12 +95,12 @@ private:
     float distance;
     float playerDistance;
     float ct = 0;
-    float backwardSpeed = 800;
+    float backwardSpeed = 600;
     bool IsBackStep;
     float ct1 = 0;
     TArray<EBossMovingState> arrayState;
     TArray<float> arrayWeight;
-
+    int randomN;
 };
 
 
