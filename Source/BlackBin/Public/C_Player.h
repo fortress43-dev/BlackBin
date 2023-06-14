@@ -4,13 +4,12 @@
 
 #include "C_Mob.h"
 #include "InputActionValue.h"
-#include "C_Barrier.h"
-#include "C_HitBox.h"
 #include "C_Player.generated.h"
 
 #define MOB_STATEEND 100;
 enum class PLAYERSTATE
 {
+	DEFAULT,
 	MOVEMENT,
 	ATTACK,
 	ROLL,
@@ -74,33 +73,66 @@ class BLACKBIN_API AC_Player : public AC_Mob
 		class UAnimMontage* PowerAttackMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* PopMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* PowerAttackChargingMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* RollMontage;
 
 	UPROPERTY(EditAnywhere)
-		TSubclassOf<AC_Barrier> BarrierClass = AC_Barrier::StaticClass();
+		TSubclassOf<class AC_Barrier> BarrierClass;
+	
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class AC_HitBox> HitBoxClass;
 
 	UPROPERTY(EditAnywhere)
-		TSubclassOf<AC_HitBox> HitBoxClass = AC_HitBox::StaticClass();
+		TSubclassOf<class AC_Arrow> ArrowClass;
 
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<AC_Arrow> ArrowClass = AC_Arrow::StaticClass();
+	UPROPERTY()
+		class UC_AnimInstance* AnimIns;
+
+	UFUNCTION()
+		void OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	virtual void PostInitializeComponents() override;
 	//UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		//TObjectPtr<class UMotionWarpingComponent> MotionWarpComponent;
 public:
 	AC_Player();
 	PLAYERSTATE	State	= PLAYERSTATE::MOVEMENT;
+	UPROPERTY()
 	float	StateTimer	= 0;
+	UPROPERTY()
 	float	gagePower	= 0;
+	UPROPERTY()
 	float	gageArrow	= 0;
+	UPROPERTY()
 	float	BarrierShield = 100;
+	UPROPERTY()
 	float	zoomTarget;
-	AC_Barrier* Barrier;
+	UPROPERTY()
+	FRotator	RotationTarget;
+	UPROPERTY()
+	bool	IsCheckCombo	= false;
+	UPROPERTY()
+	bool	bCancelable		= false;
+	UPROPERTY()
+	bool	DoCombo			= false;
+	UPROPERTY()
+	int		attackIndex	= 0;
+	UPROPERTY()
+	class AC_Barrier* Barrier;
+	UPROPERTY()
 	FVector StateDirectionX;
+	UPROPERTY()
 	FVector StateDirectionY;
+	UPROPERTY()
 	FVector2D StateVector;
+	UPROPERTY()
+	FVector2D PlayerVector;
+
 	virtual void Hit(float value) override;
 protected:
 	int Statestep		= 0;
@@ -134,11 +166,6 @@ protected:
 	void StateBarrier();
 	void StateRoll();
 	void StatePowerCharging(); 
-
-	UFUNCTION(BlueprintCallable, Category = "PlayerAttack")
-	void CheckAttackPoint();
-	UFUNCTION(BlueprintCallable, Category = "PlayerAttack")
-	void CheckAttackCountinue();
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

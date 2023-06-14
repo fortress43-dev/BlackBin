@@ -22,6 +22,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 		class UBoxComponent* boxComp;
 
+		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+		class UStaticMeshComponent* meshComp;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

@@ -12,7 +12,6 @@
 
 UC_AnimInstance::UC_AnimInstance()
 {
-	
 }
 
 void UC_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -32,7 +31,22 @@ void UC_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			Velocity = CharacterMovement->Velocity;
 			FVector Acc = CharacterMovement->GetCurrentAcceleration();
 			ShouldMove = (Acc != FVector(0) && MovementSpeed > 3);
-			UE_LOG(LogTemp, Warning, TEXT("%d"), IsFall);
 		}
 	}
+}
+
+void UC_AnimInstance::AnimNotify_AttackHitCheck()
+{
+	//UE_LOG(LogTemp, Warning, TEXT("111111"));
+	OnAttackHitCheck.Broadcast();
+}
+
+void UC_AnimInstance::AnimNotify_NextAttackCheck()
+{
+	OnNextAttackCheck.Broadcast();
+}
+
+void UC_AnimInstance::AnimNotify_Cancelable()
+{
+	OnCancelable.Broadcast();
 }

@@ -13,6 +13,17 @@ AC_HitBox::AC_HitBox()
 
 	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
 	SetRootComponent(boxComp);
+
+	meshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	meshComp->SetupAttachment(boxComp);
+
+	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMesh(TEXT("/Script/Engine.StaticMesh'/Engine/BasicShapes/Cube.Cube'"));
+	if (tempMesh.Succeeded())
+	{
+		meshComp->SetStaticMesh(tempMesh.Object);
+	}
+
+	meshComp->SetCollisionProfileName(TEXT("NoCollision"));
 	//boxComp->bgenera
 
 	

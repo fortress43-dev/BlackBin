@@ -11,6 +11,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "C_AnimInstance.h"
 #include "C_Barrier.h"
 #include "C_HitBox.h"
 #include "C_Arrow.h"
@@ -80,9 +81,67 @@ void AC_Player::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	(GetMesh()->GetAnimInstance())->AddDynamic(this, &AC_Player::OnAttackMontageEnded);
+	BarrierClass = AC_Barrier::StaticClass();
+	HitBoxClass = AC_HitBox::StaticClass();
+	ArrowClass = AC_Arrow::StaticClass();
+
+
+
+	AnimIns = Cast<UC_AnimInstance>(GetMesh()->GetAnimInstance());
+	AnimIns->OnMontageEnded.AddDynamic(this, &AC_Player::OnAnimeMontageEnded);
+
+	AnimIns->OnNextAttackCheck.AddLambda([this]() -> void {
+		IsCheckCombo = true;
+	});
+
+	AnimIns->OnAttackHitCheck.AddLambda([this]() -> void {
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		FRotator rotator = GetActorRotation();
+		FVector  SpawnLocation = GetActorLocation();
+		FVector	 addLoc = GetActorForwardVector() * 100;
+		SpawnLocation.Z -= 50.f;
+
+		AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
+		if (Hitbox)
+		{
+			Hitbox->dmg = 10;
+			Hitbox->lifeTime = 10;
+			Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
+		}
+	});
+
+	AnimIns->OnCancelable.AddLambda([this]() -> void {
+
+		bCancelable = true;
+	});
 }
 
+void AC_Player::OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (Montage == AttackMontage)
+	{
+		if (!DoCombo)
+		{
+			if (!bInterrupted)//정상 종료
+			{
+				StateReset();
+			}
+			attackIndex = 0;
+		}
+		IsCheckCombo = false;
+		DoCombo = false;
+	}
+	else if (Montage == RollMontage)
+	{
+		if (!bInterrupted)
+		{
+			StateReset();
+		}
+	}
+}
 void AC_Player::BeginPlay()
 {
 	// Call the base class  
@@ -129,8 +188,11 @@ void AC_Player::Tick(float DeltaTime)
 		{
 			StateReset();
 		}
-		AddMovementInput(StateDirectionX, StateVector.Y);
-		AddMovementInput(StateDirectionY, StateVector.X);
+		else
+		{
+			AddMovementInput(StateDirectionX, StateVector.Y);
+			AddMovementInput(StateDirectionY, StateVector.X);
+		}
 	}
 	if (CameraBoom->TargetArmLength != zoomTarget)
 	{
@@ -191,28 +253,32 @@ void AC_Player::Move(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT)
-	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+	if (Controller != nullptr)
+	{ 
+		if(State == PLAYERSTATE::MOVEMENT)
+		{
+			// find out which way is forward
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			// get forward vector
+			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
-		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+			// get right vector 
+			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
 		
 
-		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+			// add movement
+			AddMovementInput(ForwardDirection, MovementVector.Y);
+			AddMovementInput(RightDirection, MovementVector.X);
 
-		StateDirectionX = ForwardDirection;
-		StateDirectionY = RightDirection;
-		StateVector		= MovementVector;
+			StateDirectionX = ForwardDirection;
+			StateDirectionY = RightDirection;
+			StateVector		= MovementVector;
+		}
 	}
+	PlayerVector = MovementVector;
 }
 
 void AC_Player::Look(const FInputActionValue& Value)
@@ -254,45 +320,30 @@ void AC_Player::Attack()
 {
 	if (Controller != nullptr)
 	{
-		if (State == PLAYERSTATE::MOVEMENT || State == PLAYERSTATE::ATTACK)
+		if (State == PLAYERSTATE::MOVEMENT || IsCheckCombo || bCancelable)
 		{
-			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh(); // YourCharacter는 애니메이션을 가진 캐릭터 또는 액터의 인스턴스입니다.
-			if (SkeletalMeshComponent)
+			//============================================================
+			if (IsCheckCombo)
 			{
-				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
-				if (AnimInstance)
-				{
-					FAnimMontageInstance* MontageInstance = AnimInstance->GetActiveMontageInstance();
-					if (MontageInstance)
-					{
-						// 현재 노티파이 가져오기
-						MontageInstance->GetCurrentSection();
-						// 노티파이 처리
-						// ...
-					}
-				}
+				DoCombo = true;
 			}
-			//IsAttack = true;
-			//FMotionWarpingTarget Target = {};
-			//Target.Name = FName("Target");
-			//Target.Location = TargetActor->GetActorLocation();
-			//Target.Rotation = TargetActor->GetActorRotation();
+			if (!(AnimIns->Montage_IsPlaying(AttackMontage)))
+			{
+				AnimIns->Montage_Play(AttackMontage, 1.0f);
+			}
+			AnimIns->Montage_JumpToSection(FName(*FString::Printf(TEXT("Attack%d"), attackIndex + 1)), AttackMontage);
 
-			//MotionWarpComponent->AddOrUpdateWarpTarget(Target);
-			// find out which way is forward
-			//const FRotator Rotation = Controller->GetControlRotation();
-			//const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-			//// get forward vector
-			//const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
-			//// get right vector 
-			//const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-			
-			Statestep = 0;
+			attackIndex = (attackIndex + 1) % 4;
 			State = PLAYERSTATE::ATTACK;
+			IsCheckCombo	= false;
 
-			FVector2D MovementVector = FVector2D(Controller->GetControlRotation().Vector());
+			//===============================================================
+
+
+
+
+
+			FVector2D MovementVector = FVector2D(0);
 
 			const FRotator Rotation = Controller->GetControlRotation();
 			const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -302,12 +353,11 @@ void AC_Player::Attack()
 			// get right vector 
 			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-
-
 			// add movement 
 			AddMovementInput(ForwardDirection, MovementVector.Y);
 			AddMovementInput(RightDirection, MovementVector.X);
 
+			bCancelable = false;
 			StateDirectionX = ForwardDirection;
 			StateDirectionY = RightDirection;
 			StateVector = FVector2D(FVector::RightVector);
@@ -318,6 +368,7 @@ void AC_Player::Attack()
 		}
 	}
 }
+
 void AC_Player::ArrowAttack()
 {
 	if (State == PLAYERSTATE::ARROW)
@@ -342,30 +393,19 @@ void AC_Player::ArrowAttack()
 
 void AC_Player::Roll()
 {
-	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT)
+	if (Controller != nullptr && (State == PLAYERSTATE::MOVEMENT || State == PLAYERSTATE::ATTACK || State == PLAYERSTATE::POWERATTACK) )
 	{
-		//IsAttack = true;
-		//FMotionWarpingTarget Target = {};
-		//Target.Name = FName("Target");
-		//Target.Location = TargetActor->GetActorLocation();
-		//Target.Rotation = TargetActor->GetActorRotation();
-
-
-		//MotionWarpComponent->AddOrUpdateWarpTarget(Target);
-		PlayAnimMontage(RollMontage);
-		//FVector ForVector = FollowCamera->GetComponentRotation().Vector() *800;
-		//StateVector = FVector2D(ForVector);
-		boxComp->SetCollisionProfileName(TEXT("NoCollision"));
+		AnimIns->Montage_Play(RollMontage, 1.0f);
+		//boxComp->SetCollisionProfileName(TEXT("NoCollision"));
 		State = PLAYERSTATE::ROLL;
+
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector ForwardDirection	= FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightDirection	= FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
+		StateVector = PlayerVector;
 		// add movement 
 		AddMovementInput(ForwardDirection, StateVector.Y);
 		AddMovementInput(RightDirection, StateVector.X);
@@ -400,13 +440,20 @@ void AC_Player::ArrowEnd()
 
 void AC_Player::PowerAttackStart()
 {
-	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT)
+	if (Controller != nullptr && (State == PLAYERSTATE::MOVEMENT || bCancelable))
 	{
 		State = PLAYERSTATE::POWERCHARGING;
 		Statestep = 0;
 		StateTimer = 0;
 		GetCharacterMovement()->Velocity.X = 0;
 		GetCharacterMovement()->Velocity.Y = 0;
+		GetCharacterMovement()->MaxWalkSpeed = 0;
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		RotationTarget = YawRotation;
+
+		StateVector = FVector2D(0);
+		AnimIns->Montage_Play(PowerAttackMontage, 0, EMontagePlayReturnType::MontageLength, .5f);
 	}
 }
 void AC_Player::PowerAttackEnd()
@@ -416,12 +463,14 @@ void AC_Player::PowerAttackEnd()
 		State = PLAYERSTATE::POWERATTACK;
 		StateTimer = 0;
 		Statestep = 0;
+		GetCharacterMovement()->MaxWalkSpeed = 200;
+		AnimIns->Montage_Play(PowerAttackMontage, 1, EMontagePlayReturnType::MontageLength, .5f);
 	}
 }
 
 void AC_Player::BarrierStart()
 {
-	if (Controller != nullptr && Barrier == nullptr)
+	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT)
 	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
@@ -433,54 +482,66 @@ void AC_Player::BarrierStart()
 		StateTimer = 0;
 		GetCharacterMovement()->Velocity.X = 0;
 		GetCharacterMovement()->Velocity.Y = 0;
+		GetCharacterMovement()->MaxWalkSpeed = 0;
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		RotationTarget = YawRotation;
+
 		StateVector = FVector2D(0);
-		Barrier = GetWorld()->SpawnActor<AC_Barrier>(BarrierClass, SpawnLocation, rotator, SpawnParams);
-		if (Barrier)
-		{
-			Barrier->lifeTime	= 100;
-			Barrier->Host		= this;
-		}
+		//Barrier = GetWorld()->SpawnActor<AC_Barrier>(BarrierClass, SpawnLocation, rotator, SpawnParams);
+		//if (Barrier)
+		//{
+		//	Barrier->lifeTime	= 100;
+		//	Barrier->Host		= this;
+		//}
+		AnimIns->IsBarrier = true;
+		zoomTarget = 370.f;
 	}
 }
 void AC_Player::BarrierEnd()
 {
 	if (Controller != nullptr)
 	{
-		Barrier->IsBoom = true;
+		//Barrier->IsBoom = true;
 		State = PLAYERSTATE::MOVEMENT;
+		GetCharacterMovement()->MaxWalkSpeed = 200;
+		AnimIns->Montage_Play(PopMontage, 2);
+		AnimIns->IsBarrier = false;
+		zoomTarget = 400.f;
 	}
 }
 
 void AC_Player::StateAttack()
 {
-	switch (Statestep)
+	FRotator SetRot = GetActorRotation();
+	if (RotationTarget.Yaw != SetRot.Yaw)
 	{
-		case 0 :
-			if (StateTimer++ < 20)
-				break;
+		UE_LOG(LogTemp, Warning, TEXT("now		:%s"), *SetRot.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("target	: %s"), *RotationTarget.ToString());
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		RotationTarget = YawRotation;
 
-				Statestep++;
-		break;
-		case 1 :
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.Owner = this;
-			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			FRotator rotator = GetActorRotation();
-			FVector  SpawnLocation = GetActorLocation();
-			FVector	 addLoc = GetActorForwardVector() * 100;
-			SpawnLocation.Z -= 50.f;
-
-			AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
-			if (Hitbox)
-			{
-				Hitbox->dmg = 10;
-				Hitbox->lifeTime = 10;
-				Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
-			}
-			Statestep = MOB_STATEEND;
-		break;
+		if (RotationTarget.Yaw > 180)
+		{
+			RotationTarget.Yaw -= 360;
+		}
+		if (SetRot.Yaw - RotationTarget.Yaw > 180)
+		{
+			SetRot.Yaw = FMath::Lerp(SetRot.Yaw, RotationTarget.Yaw + 360, .1);
+		}
+		else if (SetRot.Yaw - RotationTarget.Yaw < -180)
+		{
+			SetRot.Yaw = FMath::Lerp(SetRot.Yaw, RotationTarget.Yaw - 360, .1);
+		}
+		else
+		{
+			SetRot.Yaw = FMath::Lerp(SetRot.Yaw, RotationTarget.Yaw, .1);
+		}
+		SetActorRotation(SetRot);
 	}
 }
+
 void AC_Player::StatePowerAttack()
 {
 	switch (Statestep)
@@ -488,7 +549,6 @@ void AC_Player::StatePowerAttack()
 	case 0:
 		if (StateTimer++ < 20)
 			break;
-
 		Statestep++;
 		break;
 	case 1:
@@ -496,7 +556,7 @@ void AC_Player::StatePowerAttack()
 		SpawnParams.Owner = this;
 		FRotator rotator = GetActorRotation();
 		FVector  SpawnLocation = GetActorLocation();
-		FVector	 addLoc = GetActorForwardVector() * 100;
+		FVector	 addLoc = GetActorForwardVector() * (100 + gagePower);
 		SpawnLocation.Z -= 50.f;
 
 		AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
@@ -515,28 +575,50 @@ void AC_Player::StatePowerAttack()
 }
 void AC_Player::StateRoll()
 {
-	switch (Statestep)
-	{
-	case 0:
-		GetCharacterMovement()->MaxWalkSpeed = 500;
-		if (StateTimer++ < 10)
-			break;
-			StateTimer = 0;
-			Statestep++;
-		break;
-	case 1:
-		GetCharacterMovement()->MaxWalkSpeed = 0;
-		if (StateTimer++ < 10)
-		break;
-			boxComp->SetCollisionProfileName(TEXT("Mob"));
-			Statestep = MOB_STATEEND;
-		break;
-
-	}
+	//switch (Statestep)
+	//{
+	//case 0:
+	//	GetCharacterMovement()->MaxWalkSpeed = 500;
+	//	if (StateTimer++ < 50)
+	//		break;
+	//		StateTimer = 0;
+	//		Statestep++;
+	//	break;
+	//case 1:
+	//	GetCharacterMovement()->MaxWalkSpeed = 0;
+	//	if (StateTimer++ < 100)
+	//	break;
+	//		boxComp->SetCollisionProfileName(TEXT("Mob"));
+	//		Statestep = MOB_STATEEND;
+	//	break;
+////
+	//}
 }
 void AC_Player::StateBarrier()
 {
-	
+	FRotator SetRot = GetActorRotation();
+	if (RotationTarget.Yaw != SetRot.Yaw)
+	{
+			UE_LOG(LogTemp, Warning, TEXT("now		:%s"), *SetRot.ToString());
+			UE_LOG(LogTemp, Warning, TEXT("target	: %s"), *RotationTarget.ToString());
+			if (RotationTarget.Yaw > 180)
+			{
+				RotationTarget.Yaw -= 360;
+			}
+			if (SetRot.Yaw - RotationTarget.Yaw > 180)
+			{
+				SetRot.Yaw = FMath::Lerp(SetRot.Yaw, RotationTarget.Yaw + 360, .1);
+			}
+			else if (SetRot.Yaw - RotationTarget.Yaw < -180)
+			{
+				SetRot.Yaw = FMath::Lerp(SetRot.Yaw , RotationTarget.Yaw - 360, .1);
+			}
+			else
+			{
+				SetRot.Yaw = FMath::Lerp(SetRot.Yaw, RotationTarget.Yaw, .1);
+			}
+			SetActorRotation(SetRot);
+	}
 }
 void AC_Player::StateArrow()
 {
@@ -561,37 +643,38 @@ void AC_Player::StateArrow()
 }
 void AC_Player::StatePowerCharging()
 {
-	switch (Statestep)
-	{
-	case 0:
-		if (StateTimer++ < 10)
-			break;
-		GetCharacterMovement()->RotationRate = FRotator(0.0f, 100.0f, 0.0f); // ...at this rotation rate
-		StateTimer = 0;
-		Statestep++;
-		break;
-	}
-	gagePower = FMath::Clamp(gagePower + .5, 0, 100);
-	GetCharacterMovement()->MaxWalkSpeed = 0;
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 700.0f, 0.0f); // ...at this rotation rate
-
-	FVector2D MovementVector = FVector2D(Controller->GetControlRotation().Vector());
-
 	const FRotator Rotation = Controller->GetControlRotation();
 	const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-	// get forward vector
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
-	// get right vector 
-	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-	StateDirectionX = ForwardDirection;
-	StateDirectionY = RightDirection;
-	StateVector = FVector2D(FVector::RightVector);
+	RotationTarget = YawRotation;
+	FRotator SetRot = GetActorRotation();
+	if (RotationTarget.Yaw != SetRot.Yaw)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("now		:%s"), *SetRot.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("target	: %s"), *RotationTarget.ToString());
+		float persent = .1 - .08* gagePower/100;
+		if (RotationTarget.Yaw > 180)
+		{
+			RotationTarget.Yaw -= 360;
+		}
+		if (SetRot.Yaw - RotationTarget.Yaw > 180)
+		{
+			SetRot.Yaw = FMath::Lerp(SetRot.Yaw, RotationTarget.Yaw + 360, persent);
+		}
+		else if (SetRot.Yaw - RotationTarget.Yaw < -180)
+		{
+			SetRot.Yaw = FMath::Lerp(SetRot.Yaw, RotationTarget.Yaw - 360, persent);
+		}
+		else
+		{
+			SetRot.Yaw = FMath::Lerp(SetRot.Yaw, RotationTarget.Yaw, persent);
+		}
+		SetActorRotation(SetRot);
+	}
+	gagePower = FMath::Clamp(gagePower + .5, 0, 100);
 }
 void AC_Player::StateReset()
 {
+	bCancelable		= false;
 	Statestep		= 0;
 	StateTimer		= 0;
 	State			= PLAYERSTATE::MOVEMENT;
@@ -610,13 +693,4 @@ void AC_Player::Hit(float value)
 	{ 
 		Super::Hit(value);
 	}
-}
-
-void AC_Player::CheckAttackPoint()
-{
-
-}
-void AC_Player::CheckAttackCountinue()
-{
-
 }

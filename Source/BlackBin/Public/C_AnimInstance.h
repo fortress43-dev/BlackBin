@@ -8,6 +8,10 @@
 
 class AC_Player;
 class MovementComponent;
+
+DECLARE_MULTICAST_DELEGATE(FOnNextAttackCheckDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnAttackHitCheckDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnCancelableDelegate);
 /**
  * 
  */
@@ -20,7 +24,21 @@ class BLACKBIN_API UC_AnimInstance : public UAnimInstance
 		UC_AnimInstance();
 		virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+		FOnNextAttackCheckDelegate	OnNextAttackCheck;
+		FOnAttackHitCheckDelegate	OnAttackHitCheck;
+		FOnCancelableDelegate		OnCancelable;
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
+			bool IsBarrier;
 	private:
+		UFUNCTION()
+		void AnimNotify_NextAttackCheck();
+
+		UFUNCTION()
+		void AnimNotify_AttackHitCheck();
+
+		UFUNCTION()
+		void AnimNotify_Cancelable();
+
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 			float MovementSpeed;
 
