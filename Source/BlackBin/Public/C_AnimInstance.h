@@ -12,6 +12,7 @@ class MovementComponent;
 DECLARE_MULTICAST_DELEGATE(FOnNextAttackCheckDelegate);
 DECLARE_MULTICAST_DELEGATE(FOnAttackHitCheckDelegate);
 DECLARE_MULTICAST_DELEGATE(FOnCancelableDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnDoRotationDelegate);
 /**
  * 
  */
@@ -27,6 +28,7 @@ class BLACKBIN_API UC_AnimInstance : public UAnimInstance
 		FOnNextAttackCheckDelegate	OnNextAttackCheck;
 		FOnAttackHitCheckDelegate	OnAttackHitCheck;
 		FOnCancelableDelegate		OnCancelable;
+		FOnDoRotationDelegate		OnDoRotation;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 			bool IsBarrier;
 	private:
@@ -38,6 +40,9 @@ class BLACKBIN_API UC_AnimInstance : public UAnimInstance
 
 		UFUNCTION()
 		void AnimNotify_Cancelable();
+
+		UFUNCTION()
+		void AnimNotify_DoRotation();
 
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 			float MovementSpeed;

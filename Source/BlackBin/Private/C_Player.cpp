@@ -91,7 +91,10 @@ void AC_Player::PostInitializeComponents()
 	AnimIns->OnMontageEnded.AddDynamic(this, &AC_Player::OnAnimeMontageEnded);
 
 	AnimIns->OnNextAttackCheck.AddLambda([this]() -> void {
-		IsCheckCombo = true;
+		if (IsCheckCombo == true)
+		AnimIns->Montage_JumpToSection(FName(*FString::Printf(TEXT("Attack%d"), attackIndex + 1)), AttackMontage);
+		IsCheckCombo = false;
+		attackIndex = (attackIndex + 1) % 4;
 	});
 
 	AnimIns->OnAttackHitCheck.AddLambda([this]() -> void {
@@ -117,6 +120,11 @@ void AC_Player::PostInitializeComponents()
 
 		bCancelable = true;
 	});
+
+	AnimIns->OnDoRotation.AddLambda([this]() -> void {
+
+		IsRotation = true;
+	});
 }
 
 void AC_Player::OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -140,6 +148,10 @@ void AC_Player::OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 		{
 			StateReset();
 		}
+		IsRotation							= true;
+		GetCharacterMovement()->Velocity.X = 0;
+		GetCharacterMovement()->Velocity.Y = 0;
+		GetCharacterMovement()->RotationRate = FRotator(0.0f, 700.0f, 0.0f);
 	}
 }
 void AC_Player::BeginPlay()
@@ -230,7 +242,7 @@ void AC_Player::SetupPlayerInputComponent(class UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(BarrierAction, ETriggerEvent::Triggered, this, &AC_Player::BarrierStart);
 		EnhancedInputComponent->BindAction(BarrierAction, ETriggerEvent::Completed, this, &AC_Player::BarrierEnd);
 
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AC_Player::Attack);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AC_Player::Attack);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AC_Player::ArrowAttack);
 
 		EnhancedInputComponent->BindAction(PowerAttackAction, ETriggerEvent::Triggered, this, &AC_Player::PowerAttackStart);
@@ -320,22 +332,20 @@ void AC_Player::Attack()
 {
 	if (Controller != nullptr)
 	{
-		if (State == PLAYERSTATE::MOVEMENT || IsCheckCombo || bCancelable)
+		if (State == PLAYERSTATE::ATTACK)
+		{
+			IsCheckCombo = true;
+		}
+		if (State == PLAYERSTATE::MOVEMENT || bCancelable)
 		{
 			//============================================================
-			if (IsCheckCombo)
-			{
-				DoCombo = true;
-			}
 			if (!(AnimIns->Montage_IsPlaying(AttackMontage)))
 			{
 				AnimIns->Montage_Play(AttackMontage, 1.0f);
 			}
-			AnimIns->Montage_JumpToSection(FName(*FString::Printf(TEXT("Attack%d"), attackIndex + 1)), AttackMontage);
 
-			attackIndex = (attackIndex + 1) % 4;
+			attackIndex = 1;
 			State = PLAYERSTATE::ATTACK;
-			IsCheckCombo	= false;
 
 			//===============================================================
 
@@ -412,8 +422,11 @@ void AC_Player::Roll()
 
 		StateDirectionX = ForwardDirection;
 		StateDirectionY = RightDirection;
-		GetCharacterMovement()->Velocity.X = YawRotation.RotateVector(FVector(StateVector.Y, StateVector.X, 0)).X * 800;
-		GetCharacterMovement()->Velocity.Y = YawRotation.RotateVector(FVector(StateVector.Y, StateVector.X, 0)).Y*800;
+		GetCharacterMovement()->MaxWalkSpeed = 0;
+		GetCharacterMovement()->Velocity.X = YawRotation.RotateVector(FVector(StateVector.Y, StateVector.X, 0)).X * 1100;
+		GetCharacterMovement()->Velocity.Y = YawRotation.RotateVector(FVector(StateVector.Y, StateVector.X, 0)).Y*1100;
+		GetCharacterMovement()->RotationRate = FRotator(0.0f, 1500.0f, 0.0f);
+		IsRotation = false;
 	}
 }
 
@@ -575,32 +588,42 @@ void AC_Player::StatePowerAttack()
 }
 void AC_Player::StateRoll()
 {
-	//switch (Statestep)
-	//{
-	//case 0:
-	//	GetCharacterMovement()->MaxWalkSpeed = 500;
-	//	if (StateTimer++ < 50)
-	//		break;
-	//		StateTimer = 0;
-	//		Statestep++;
-	//	break;
-	//case 1:
-	//	GetCharacterMovement()->MaxWalkSpeed = 0;
-	//	if (StateTimer++ < 100)
-	//	break;
-	//		boxComp->SetCollisionProfileName(TEXT("Mob"));
-	//		Statestep = MOB_STATEEND;
-	//	break;
-////
-	//}
+	if (IsRotation)
+	{
+		FRotator SetRot = GetActorRotation();
+		if (RotationTarget.Yaw != SetRot.Yaw)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("now		:%s"), *SetRot.ToString());
+			UE_LOG(LogTemp, Warning, TEXT("target	: %s"), *RotationTarget.ToString());
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
+			RotationTarget = YawRotation;
+
+			if (RotationTarget.Yaw > 180)
+			{
+				RotationTarget.Yaw -= 360;
+			}
+			if (SetRot.Yaw - RotationTarget.Yaw > 180)
+			{
+				SetRot.Yaw = FMath::Lerp(SetRot.Yaw, RotationTarget.Yaw + 360, .1);
+			}
+			else if (SetRot.Yaw - RotationTarget.Yaw < -180)
+			{
+				SetRot.Yaw = FMath::Lerp(SetRot.Yaw, RotationTarget.Yaw - 360, .1);
+			}
+			else
+			{
+				SetRot.Yaw = FMath::Lerp(SetRot.Yaw, RotationTarget.Yaw, .1);
+			}
+			SetActorRotation(SetRot);
+		}
+	}
 }
 void AC_Player::StateBarrier()
 {
 	FRotator SetRot = GetActorRotation();
 	if (RotationTarget.Yaw != SetRot.Yaw)
 	{
-			UE_LOG(LogTemp, Warning, TEXT("now		:%s"), *SetRot.ToString());
-			UE_LOG(LogTemp, Warning, TEXT("target	: %s"), *RotationTarget.ToString());
 			if (RotationTarget.Yaw > 180)
 			{
 				RotationTarget.Yaw -= 360;

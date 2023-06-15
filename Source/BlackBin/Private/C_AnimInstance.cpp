@@ -50,3 +50,8 @@ void UC_AnimInstance::AnimNotify_Cancelable()
 {
 	OnCancelable.Broadcast();
 }
+
+void UC_AnimInstance::AnimNotify_DoRotation()
+{
+	OnDoRotation.Broadcast();
+}

@@ -115,6 +115,8 @@ public:
 	UPROPERTY()
 	FRotator	RotationTarget;
 	UPROPERTY()
+	bool	IsRotation		= true;
+	UPROPERTY()
 	bool	IsCheckCombo	= false;
 	UPROPERTY()
 	bool	bCancelable		= false;
