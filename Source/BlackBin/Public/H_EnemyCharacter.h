@@ -12,7 +12,8 @@ enum class EBossMovingState : uint8
 {
     MovingBackward,
     MovingForward,
-    MovingSide,
+    MovingLeft,
+    MovingRight,
     Staying,
     Attacking,
     Dash,
@@ -77,7 +78,8 @@ public:
 
     void MovingBackward();
     void MovingForward();
-    void MovingSide();
+    void MovingLeft();
+    void MovingRight();
     void Staying();
     void Attacking();
     void Dash();
@@ -99,9 +101,10 @@ private:
     float playerDistance;
     float ct = 0;
     float backwardSpeed = 600;
-    bool IsBackStep;
     float ct1 = 0;
     int randomN;
+    int ranTime;
+    
 };
 
 
