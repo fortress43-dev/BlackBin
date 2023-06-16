@@ -14,6 +14,7 @@
 #include "C_Mob.h"
 #include "Math/RandomStream.h"
 #include "DebugMessages.h"
+#include "H_AnimInst.h"
 
 // Sets default values
 AH_EnemyCharacter::AH_EnemyCharacter()
@@ -50,10 +51,17 @@ AH_EnemyCharacter::AH_EnemyCharacter()
     dashSpeed = 700.0f; // Adjust the value as needed
     
     randomN = FMath::RandRange(1, 100);
-
-
+    
+    //나중에 백스텝 한번에 할떄 쓰기
+	/*AnimIns = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
+	AnimIns->OnMontageEnded.AddDynamic(this, &AH_EnemyCharacter::AnimEnded);*/
 }
 
+//나중에 백스텝 한번에 할떄 쓰기
+//void AH_EnemyCharacter::PostInitializeComponents()
+//{
+//    Super::PostInitializeComponents();
+//}
 // Called when the game starts or when spawned
 void AH_EnemyCharacter::BeginPlay()
 {
@@ -90,6 +98,9 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
 
         PlayerLoc = playerLocation;
         EnemyLoc = enemyLocation;
+        EnemyRot = TargetRotation;
+        EnemyRot.Roll = 0;
+        EnemyRot.Pitch = 0;
 
         Checking();
         switch (MoveState)
@@ -118,6 +129,9 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
         case EBossMovingState::BackStep:
             BackStep();
             break;
+        case EBossMovingState::SAttack:
+            SAttack();
+            break;
         default:
             break;
         }
@@ -140,42 +154,45 @@ void AH_EnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 void AH_EnemyCharacter::MovingBackward()
 {
+    
     dir = PlayerLoc - EnemyLoc;
     dir.Normalize();
-    FVector newLocation = GetActorLocation() + dir * moveSpeed * dt * -1;
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
-    GetCharacterMovement()->Velocity = dir * moveSpeed;
-    SetActorLocation(newLocation);
-    
+    AddMovementInput(dir * -1);
+    GetCharacterMovement()->MaxWalkSpeed = 150;
+    SetActorRotation(EnemyRot);
 }
 
 void AH_EnemyCharacter::MovingForward()
 {
     dir = PlayerLoc - EnemyLoc;
     dir.Normalize();
-    FVector newLocation = GetActorLocation() + dir * moveSpeed * dt;
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
-    GetCharacterMovement()->Velocity = dir * moveSpeed;
-    SetActorLocation(newLocation);
-    
+    AddMovementInput(dir);
+    GetCharacterMovement()->MaxWalkSpeed = 150;
+    SetActorRotation(EnemyRot);
 }
 
 void AH_EnemyCharacter::MovingRight()
 {
 // 오른쪽으로 이동하는 로직 구현
-        FVector NewLocation = GetActorLocation() + FVector(1.0f, 0.0f, 0.0f) * moveSpeed * dt;
-        GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
-        GetCharacterMovement()->Velocity = dir * moveSpeed;
-        SetActorLocation(NewLocation); // 보스의 위치를 새로운 위치로 설정
+    dir = PlayerLoc - EnemyLoc;
+    dir.Normalize();
+    SetActorRotation(EnemyRot);
+    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
+    AddMovementInput(dir * FVector::RightVector);
+    GetCharacterMovement()->MaxWalkSpeed = 150;
 }
   
 
 void AH_EnemyCharacter::MovingLeft()
 {
-    FVector NewLocation = GetActorLocation() + FVector(-1.0f, 0.0f, 0.0f) * moveSpeed * dt;
+    dir = PlayerLoc - EnemyLoc;
+    dir.Normalize();
+    SetActorRotation(EnemyRot);
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
-    GetCharacterMovement()->Velocity = dir * moveSpeed;
-    SetActorLocation(NewLocation); // 보스의 위치를 새로운 위치로 설정
+    AddMovementInput(dir * FVector::LeftVector);
+    GetCharacterMovement()->MaxWalkSpeed = 150;
 }
 
     
@@ -189,15 +206,13 @@ void AH_EnemyCharacter::MovingLeft()
 
 void AH_EnemyCharacter::Staying()
 {
-    GetCharacterMovement()->StopMovementImmediately();
-    GetCharacterMovement()->Velocity = FVector::ZeroVector;
+    GetCharacterMovement()->MaxWalkSpeed = 0;
 }
 
 void AH_EnemyCharacter::Attacking()
 {
-    if (distance > 300) {
-        GetCharacterMovement()->StopMovementImmediately();
-        GetCharacterMovement()->Velocity = FVector::ZeroVector;
+    if (distance < 300) {
+        GetCharacterMovement()->MaxWalkSpeed = 0;
         SpawnHitBox();
     }
     else {
@@ -205,21 +220,33 @@ void AH_EnemyCharacter::Attacking()
     }
 }
 
+// 대쉬상태일때 대쉬속도로 계속 이동한다.
+// 단, 일정거리 이상일때 대쉬모드를 유지한다.
+// 만약 일정거리 미만이면 대쉬모드를 끝내고 싶다.
+
+
 void AH_EnemyCharacter::Dash()
 {
     if (MoveState == EBossMovingState::Dash && distance > 200) {
         // Dash towards the player character
+
+        auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
+        if (nullptr == AnimInstance) return;
+
+        AnimInstance->PlayRunMontage();
+
         dir = PlayerLoc - EnemyLoc;
-        dir.Normalize();
-        FVector newLocation = GetActorLocation() + dir * dashSpeed * dt;
         GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
-        GetCharacterMovement()->Velocity = dir * dashSpeed;
-        SetActorLocation(newLocation);
+        GetCharacterMovement()->MaxWalkSpeed = 900;
+        AddMovementInput(dir);
+        
+        if (distance < 300) {
+            MoveState = EBossMovingState::SAttack;
+
+        }
         
     }
-    else {
-        Checking();
-    }
+    
 
 }
 
@@ -228,19 +255,34 @@ void AH_EnemyCharacter::BackStep()
 
     if (MoveState == EBossMovingState::BackStep && distance < 900) 
     {
+
+        BackMove();
         dir = PlayerLoc - EnemyLoc;
         dir.Normalize();
-        FVector newLocation = GetActorLocation() + dir * dashSpeed * dt * -1;
+        SetActorRotation(EnemyRot);
         GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
-        GetCharacterMovement()->Velocity = dir * dashSpeed;
-        SetActorLocation(newLocation);
+        AddMovementInput(dir * -1);
+        GetCharacterMovement()->MaxWalkSpeed = 700;
+        
+        
     }
     // 3. 만약 뒤로 300 이동했다면-> 뒤로이동하기 시작한 위치에서 부터 300 떨어졌다면
 
-    /*printf("VectorX: %f", backwardDirection.X);
-    printf("VectorY: %f", backwardDirection.Y);
-    printf("VectorZ: %f", backwardDirection.Z);
-    printf("Speed %f", backwardSpeed);*/
+ 
+}
+
+void AH_EnemyCharacter::SAttack()
+{
+	SAttackMongtage();
+    SpawnHitBox();
+}
+
+void AH_EnemyCharacter::BackMove()
+{
+    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
+    if (nullptr == AnimInstance) return;
+
+    AnimInstance->PlayBackmoveMontage();
 }
 
 void AH_EnemyCharacter::Checking()
@@ -257,7 +299,7 @@ void AH_EnemyCharacter::Checking()
             //가중치를 계산해서 하나를 뽑아라
 			MoveState = GetArrayWeight(arrayState, arrayWeight);
 		}
-        else if(distance < 1000 && distance > 300){
+        else if(distance < 1000 && distance > 200){
 
             arrayState = { EBossMovingState::MovingBackward, EBossMovingState::MovingForward, EBossMovingState::MovingLeft,EBossMovingState::MovingRight, EBossMovingState::Staying };
             arrayWeight = { 0.2f, 0.6f, 0.6f, 0.6f, 0.4f};
@@ -265,10 +307,10 @@ void AH_EnemyCharacter::Checking()
             MoveState = GetArrayWeight(arrayState, arrayWeight);
 
         }
-        //
+        
         else {
             arrayState = { EBossMovingState::MovingBackward, EBossMovingState::Attacking, EBossMovingState::BackStep, EBossMovingState::Staying };
-            arrayWeight = { 0.4f, 0.8f, 0.1f, 0.3f};
+            arrayWeight = { 0.4f, 0.8f, 0.3f, 0.3f};
 
             MoveState = GetArrayWeight(arrayState, arrayWeight);
         }
@@ -325,6 +367,7 @@ void AH_EnemyCharacter::SpawnHitBox()
 
         SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
         AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
+        FirstBasicAttack();
         //만약 히트박스가 소환됬다면
         if (Hitbox)
         {
@@ -336,6 +379,22 @@ void AH_EnemyCharacter::SpawnHitBox()
         }
         ct = 0;
     }
+}
+
+void AH_EnemyCharacter::SAttackMongtage()
+{
+    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
+    if (nullptr == AnimInstance) return;
+
+    AnimInstance->PlaySAttackMontage();
+}
+
+void AH_EnemyCharacter::FirstBasicAttack()
+{
+    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
+    if (nullptr == AnimInstance) return;
+
+    AnimInstance->PlayBasicAttackMongtage();
 }
 
 //조건을 피격시 50퍼센트로 바꿀거임
@@ -356,3 +415,8 @@ void AH_EnemyCharacter::Hit(float value) {
     }
     else printf("RanN : %d", randomN);
 }
+
+//void AH_EnemyCharacter::AnimEnded(UAnimMontage* Montage, bool bInterrupted)
+//{
+//
+//}
