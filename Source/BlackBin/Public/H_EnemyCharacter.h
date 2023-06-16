@@ -18,6 +18,7 @@ enum class EBossMovingState : uint8
     Attacking,
     Dash,
     BackStep,
+    SAttack,
 
 };
 
@@ -72,6 +73,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TArray<float> arrayWeight;
 
+
    
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = STATE)
         EBossMovingState MoveState = EBossMovingState::Dash;
@@ -84,18 +86,31 @@ public:
     void Attacking();
     void Dash();
     void BackStep();
+    void SAttack();
+    void BackMove();
     void Checking();
     void SpawnHitBox();
-
+    void SAttackMongtage();
+    void FirstBasicAttack();
     EBossMovingState GetArrayWeight(const TArray<EBossMovingState>& ArrayState, const TArray<float>& ArrayWeight);
 
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-        class UStaticMeshComponent* meshComp;
+    class UStaticMeshComponent* meshComp;
+
+    //나중에 백스텝 한번에 할떄 쓰기
+    /*UFUNCTION()
+    void AnimEnded(UAnimMontage* Montage, bool bInterrupted);
+
+    UPROPERTY()
+    class UH_AnimInst* AnimIns;
+
+    virtual void PostInitializeComponents() override;*/
 
     FVector PlayerLoc;
     FVector EnemyLoc;
     FVector dir; // Movement direction
+    FRotator EnemyRot;
     float dt;
     float distance;
     float playerDistance;

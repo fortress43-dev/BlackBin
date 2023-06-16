@@ -17,10 +17,27 @@ class BLACKBIN_API UH_AnimInst : public UAnimInstance
 		UH_AnimInst();
 	virtual void NativeUpdateAnimation(float DeltaSeconds)override;
 
-
 public:
+
+	void PlaySAttackMontage();
+
+	void PlayRunMontage();
+
+	void PlayBackmoveMontage();
+
+	void PlayBasicAttackMongtage();
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FVector Velocity;
+	
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+    UAnimMontage* SAttackMontage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* RunningMongtage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* BackMoveMongtage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* BasicAttackMongtage;
 
 	
 };

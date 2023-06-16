@@ -7,7 +7,29 @@
 
 UH_AnimInst::UH_AnimInst()
 {
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> SAttack(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/HM_SAttack.HM_SAttack'"));
+    if (SAttack.Succeeded())
+    {
+        SAttackMontage = SAttack.Object;
+    }
 
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> RunningMon(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/HM_Running.HM_Running'"));
+    if (RunningMon.Succeeded())
+    {
+        RunningMongtage = RunningMon.Object;
+    }
+
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> BackMoveMon(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/HM_BackStep.HM_BackStep'"));
+    if (BackMoveMon.Succeeded())
+    {
+        BackMoveMongtage = BackMoveMon.Object;
+    }
+
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> BasicMoveMong(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/HM_BasicAttack.HM_BasicAttack'"));
+    if (BasicMoveMong.Succeeded())
+    {
+        BasicAttackMongtage = BasicMoveMong.Object;
+    }
 }
 
 void UH_AnimInst::NativeUpdateAnimation(float DeltaSeconds)
@@ -30,3 +52,36 @@ void UH_AnimInst::NativeUpdateAnimation(float DeltaSeconds)
         }
     }
 }
+
+void UH_AnimInst::PlaySAttackMontage()
+{
+    if (!Montage_IsPlaying(SAttackMontage))
+    {
+        Montage_Play(SAttackMontage, 1.0f);
+    }
+}
+
+void UH_AnimInst::PlayRunMontage()
+{
+    if (!Montage_IsPlaying(RunningMongtage))
+    {
+        Montage_Play(RunningMongtage, 1.0f);
+    }
+}
+
+void UH_AnimInst::PlayBackmoveMontage()
+{
+    if (!Montage_IsPlaying(BackMoveMongtage))
+    {
+        Montage_Play(BackMoveMongtage, 1.0f);
+    }
+}
+
+void UH_AnimInst::PlayBasicAttackMongtage()
+{
+    if (!Montage_IsPlaying(BasicAttackMongtage))
+    {
+        Montage_Play(BasicAttackMongtage, 1.0f);
+    }
+}
+
