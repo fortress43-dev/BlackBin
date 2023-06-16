@@ -30,6 +30,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 		USoundBase* SB_CrystalSound;
 
+	UPROPERTY(BlueprintReadWrite,EditDefaultsOnly, Category = "Default")
+		TSubclassOf<AActor> LightBarrierFactory;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -40,7 +42,9 @@ public:
 	float curTime;
 	void ShineCrystal();
 	void ColorChange();
-private:
-	UMaterialInstanceDynamic* DynamicMaterial;
 
+	UPROPERTY(EditDefaultsOnly)
+	UMaterialInstanceDynamic* DynamicMaterial;
+private:
+	
 };
