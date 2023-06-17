@@ -27,6 +27,10 @@ public:
 
 	void PlayBasicAttackMongtage();
 
+	void PlayBasicAttackOneMongtage();
+
+	void PlayBasicAttackTwoMongtage();
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FVector Velocity;
 	
@@ -38,6 +42,8 @@ public:
 	UAnimMontage* BackMoveMongtage;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
 	UAnimMontage* BasicAttackMongtage;
-
-	
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* BasicAttackOneMongtage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* BasicAttackTwoMongtage;
 };

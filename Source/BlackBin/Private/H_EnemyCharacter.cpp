@@ -102,36 +102,44 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
         EnemyRot.Roll = 0;
         EnemyRot.Pitch = 0;
 
-        Checking();
+        
         switch (MoveState)
         {
         case EBossMovingState::Dash:
-            Dash();       
+            Dash();   
             break;
         case EBossMovingState::MovingBackward:
             MovingBackward();
+            Checking();
             break;
         case EBossMovingState::MovingForward:
             MovingForward();
+            Checking();
             break;
         case EBossMovingState::MovingLeft:
             MovingLeft();
+            Checking();
             break;
         case EBossMovingState::MovingRight:
             MovingRight();
+            Checking();
             break;
         case EBossMovingState::Staying:
             Staying();
+            Checking();
             break;
         case EBossMovingState::Attacking:
             Attacking();
+            Checking();
             break;
         case EBossMovingState::BackStep:
             BackStep();
+            Checking();
             break;
-        case EBossMovingState::SAttack:
-            SAttack();
-            break;
+			/*case EBossMovingState::SAttack:
+				SAttack();
+				Checking();
+				break;*/
         default:
             break;
         }
@@ -161,6 +169,7 @@ void AH_EnemyCharacter::MovingBackward()
     AddMovementInput(dir * -1);
     GetCharacterMovement()->MaxWalkSpeed = 150;
     SetActorRotation(EnemyRot);
+
 }
 
 void AH_EnemyCharacter::MovingForward()
@@ -171,6 +180,7 @@ void AH_EnemyCharacter::MovingForward()
     AddMovementInput(dir);
     GetCharacterMovement()->MaxWalkSpeed = 150;
     SetActorRotation(EnemyRot);
+
 }
 
 void AH_EnemyCharacter::MovingRight()
@@ -182,7 +192,9 @@ void AH_EnemyCharacter::MovingRight()
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
     AddMovementInput(dir * FVector::RightVector);
     GetCharacterMovement()->MaxWalkSpeed = 150;
+
 }
+    
   
 
 void AH_EnemyCharacter::MovingLeft()
@@ -193,6 +205,7 @@ void AH_EnemyCharacter::MovingLeft()
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
     AddMovementInput(dir * FVector::LeftVector);
     GetCharacterMovement()->MaxWalkSpeed = 150;
+
 }
 
     
@@ -207,17 +220,26 @@ void AH_EnemyCharacter::MovingLeft()
 void AH_EnemyCharacter::Staying()
 {
     GetCharacterMovement()->MaxWalkSpeed = 0;
+    
 }
 
 void AH_EnemyCharacter::Attacking()
 {
     if (distance < 300) {
         GetCharacterMovement()->MaxWalkSpeed = 0;
+        //if (FMath::RandRange(1, 100) > 50) {
+            FirstBasicAttack();
+        //}
+		/*else if (FMath::RandRange(1, 100) <= 67, FMath::RandRange(1, 100) > 33) {
+			SecondBasicAttack();
+		}*/
+		/* else {
+			 ThirdBasicAttack();
+		 }*/
         SpawnHitBox();
+        
     }
-    else {
-        Checking();
-    }
+    
 }
 
 // 대쉬상태일때 대쉬속도로 계속 이동한다.
@@ -229,7 +251,7 @@ void AH_EnemyCharacter::Dash()
 {
     if (MoveState == EBossMovingState::Dash && distance > 200) {
         // Dash towards the player character
-
+        
         auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
         if (nullptr == AnimInstance) return;
 
@@ -240,11 +262,12 @@ void AH_EnemyCharacter::Dash()
         GetCharacterMovement()->MaxWalkSpeed = 900;
         AddMovementInput(dir);
         
-        if (distance < 300) {
-            MoveState = EBossMovingState::SAttack;
-
-        }
+    }
+    else if(MoveState == EBossMovingState::Dash && distance < 201) {
         
+         SAttackMongtage();
+         SpawnHitBox();
+         MoveState = EBossMovingState::MovingBackward;
     }
     
 
@@ -253,7 +276,7 @@ void AH_EnemyCharacter::Dash()
 void AH_EnemyCharacter::BackStep()
 {
 
-    if (MoveState == EBossMovingState::BackStep && distance < 900) 
+    if (MoveState == EBossMovingState::BackStep && distance < 700) 
     {
 
         BackMove();
@@ -264,18 +287,20 @@ void AH_EnemyCharacter::BackStep()
         AddMovementInput(dir * -1);
         GetCharacterMovement()->MaxWalkSpeed = 700;
         
-        
     }
     // 3. 만약 뒤로 300 이동했다면-> 뒤로이동하기 시작한 위치에서 부터 300 떨어졌다면
 
  
 }
 
-void AH_EnemyCharacter::SAttack()
-{
-	SAttackMongtage();
-    SpawnHitBox();
-}
+//void AH_EnemyCharacter::SAttack()
+//{
+//    ct += dt;
+//    if (ct > ranTime) {
+//    SAttackMongtage();
+//    SpawnHitBox();
+//    }
+//}
 
 void AH_EnemyCharacter::BackMove()
 {
@@ -287,37 +312,32 @@ void AH_EnemyCharacter::BackMove()
 
 void AH_EnemyCharacter::Checking()
 {
-    ranTime = FMath::RandRange(2, 5);
-
-
-	if (ct >  ranTime){
-        //만약 거리가 100보다 멀다면
-		if (distance > 900) {
-            //세개의 스테이트 중에서
-            arrayState = { EBossMovingState::Dash, EBossMovingState::MovingForward, EBossMovingState::MovingRight,EBossMovingState::MovingLeft, EBossMovingState::Staying };
-            arrayWeight = { 0.9f, 0.2f, 0.2f, 0.2f, 0.2f};
-            //가중치를 계산해서 하나를 뽑아라
-			MoveState = GetArrayWeight(arrayState, arrayWeight);
-		}
-        else if(distance < 1000 && distance > 200){
-
-            arrayState = { EBossMovingState::MovingBackward, EBossMovingState::MovingForward, EBossMovingState::MovingLeft,EBossMovingState::MovingRight, EBossMovingState::Staying };
-            arrayWeight = { 0.2f, 0.6f, 0.6f, 0.6f, 0.4f};
-
-            MoveState = GetArrayWeight(arrayState, arrayWeight);
-
-        }
-        
-        else {
-            arrayState = { EBossMovingState::MovingBackward, EBossMovingState::Attacking, EBossMovingState::BackStep, EBossMovingState::Staying };
-            arrayWeight = { 0.4f, 0.8f, 0.3f, 0.3f};
-
-            MoveState = GetArrayWeight(arrayState, arrayWeight);
-        }
-        printf("%d", MoveState);
+    ct += dt;
+    if (distance > 900 && ct > ranTime) {
+        arrayState = { EBossMovingState::Dash, EBossMovingState::MovingForward, EBossMovingState::MovingRight,EBossMovingState::MovingLeft, EBossMovingState::Staying };
+        arrayWeight = { 0.9f, 0.2f, 0.2f, 0.2f, 0.2f };
+//가중치를 계산해서 하나를 뽑아라
+        MoveState = GetArrayWeight(arrayState, arrayWeight);
         ct = 0;
-	}
+    }
+    else if (distance < 900 && distance > 200 && ct > ranTime) {
+        arrayState = { EBossMovingState::MovingBackward, EBossMovingState::MovingForward, EBossMovingState::MovingLeft,EBossMovingState::MovingRight, EBossMovingState::Staying };
+        arrayWeight = { 0.2f, 0.6f, 0.6f, 0.6f, 0.4f };
+
+        MoveState = GetArrayWeight(arrayState, arrayWeight);
+
+        ct = 0;
+    }
+    else if (ct > ranTime && distance < 200) {
+        arrayState = { EBossMovingState::MovingBackward, EBossMovingState::Attacking, EBossMovingState::BackStep, EBossMovingState::Staying };
+        arrayWeight = { 0.4f, 0.8f, 0.3f, 0.3f };
+
+        MoveState = GetArrayWeight(arrayState, arrayWeight);
+        printf("%d", static_cast<int>(MoveState));
+        ct = 0;
+    }
 }
+
 
 EBossMovingState AH_EnemyCharacter::GetArrayWeight(const TArray<EBossMovingState>& ArrayState, const TArray<float>& ArrayWeight)
 {
@@ -367,11 +387,11 @@ void AH_EnemyCharacter::SpawnHitBox()
 
         SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
         AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
-        FirstBasicAttack();
+        
         //만약 히트박스가 소환됬다면
         if (Hitbox)
         {
-            printf("Attack");
+            
             Hitbox->dmg = 10;
             Hitbox->lifeTime = 10;
             Hitbox->team = team;
@@ -395,6 +415,22 @@ void AH_EnemyCharacter::FirstBasicAttack()
     if (nullptr == AnimInstance) return;
 
     AnimInstance->PlayBasicAttackMongtage();
+}
+
+void AH_EnemyCharacter::SecondBasicAttack()
+{
+    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
+    if (nullptr == AnimInstance) return;
+
+    AnimInstance->PlayBasicAttackOneMongtage();
+}
+
+void AH_EnemyCharacter::ThirdBasicAttack()
+{
+    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
+    if (nullptr == AnimInstance) return;
+
+    AnimInstance->PlayBasicAttackTwoMongtage();
 }
 
 //조건을 피격시 50퍼센트로 바꿀거임

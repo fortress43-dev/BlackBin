@@ -30,6 +30,18 @@ UH_AnimInst::UH_AnimInst()
     {
         BasicAttackMongtage = BasicMoveMong.Object;
     }
+
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> BasicOneMong(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/HM_BasicAttack2.HM_BasicAttack2'"));
+    if (BasicOneMong.Succeeded())
+    {
+        BasicAttackOneMongtage = BasicOneMong.Object;
+    }
+
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> BasicTwoMong(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/HM_BasicAttack3.HM_BasicAttack3'"));
+    if (BasicTwoMong.Succeeded())
+    {
+        BasicAttackTwoMongtage = BasicTwoMong.Object;
+    }
 }
 
 void UH_AnimInst::NativeUpdateAnimation(float DeltaSeconds)
@@ -85,3 +97,18 @@ void UH_AnimInst::PlayBasicAttackMongtage()
     }
 }
 
+void UH_AnimInst::PlayBasicAttackOneMongtage()
+{
+    if (!Montage_IsPlaying(BasicAttackOneMongtage))
+    {
+        Montage_Play(BasicAttackOneMongtage, 1.0f);
+    }
+}
+
+void UH_AnimInst::PlayBasicAttackTwoMongtage()
+{
+    if (!Montage_IsPlaying(BasicAttackTwoMongtage))
+    {
+        Montage_Play(BasicAttackTwoMongtage, 1.0f);
+    }
+}

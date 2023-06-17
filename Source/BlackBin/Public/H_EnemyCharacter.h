@@ -16,9 +16,9 @@ enum class EBossMovingState : uint8
     MovingRight,
     Staying,
     Attacking,
-    Dash,
-    BackStep,
-    SAttack,
+	Dash,
+	BackStep,
+    //SAttack,
 
 };
 
@@ -86,12 +86,14 @@ public:
     void Attacking();
     void Dash();
     void BackStep();
-    void SAttack();
+    //void SAttack();
     void BackMove();
     void Checking();
     void SpawnHitBox();
     void SAttackMongtage();
     void FirstBasicAttack();
+    void SecondBasicAttack();
+    void ThirdBasicAttack();
     EBossMovingState GetArrayWeight(const TArray<EBossMovingState>& ArrayState, const TArray<float>& ArrayWeight);
 
 private:
@@ -118,7 +120,7 @@ private:
     float backwardSpeed = 600;
     float ct1 = 0;
     int randomN;
-    int ranTime;
+    int ranTime = FMath::RandRange(2, 5);
     
 };
 
