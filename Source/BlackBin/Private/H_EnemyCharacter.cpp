@@ -300,7 +300,7 @@ void AH_EnemyCharacter::Dash()
         dir = PlayerLoc - EnemyLoc;
         dir.Normalize();
         GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
-        GetCharacterMovement()->MaxWalkSpeed = 900;
+        GetCharacterMovement()->MaxWalkSpeed = 1500;
         AddMovementInput(dir);
 
     }
@@ -324,7 +324,7 @@ void AH_EnemyCharacter::BackStep()
         SetActorRotation(EnemyRot);
         GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
         AddMovementInput(dir * -1);
-        GetCharacterMovement()->MaxWalkSpeed = 700;
+        GetCharacterMovement()->MaxWalkSpeed = 1500;
         
     }
 
