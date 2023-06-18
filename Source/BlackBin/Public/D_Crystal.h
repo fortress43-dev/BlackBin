@@ -30,13 +30,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 		USoundBase* SB_CrystalSound;
 
-	UPROPERTY(BlueprintReadWrite,EditDefaultsOnly, Category = "Default")
-		TSubclassOf<AActor> LightBarrierFactory;
+	UPROPERTY(EditAnywhere, Category = "Factory")
+		TSubclassOf<class AD_CrystalLight> LightBarrierFactory;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 public:
+
 	UPROPERTY(EditAnyWhere)
 	bool isShine;
 	float curTime;
@@ -45,6 +46,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	UMaterialInstanceDynamic* DynamicMaterial;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UStaticMeshComponent* meshComp;
+	UPROPERTY(EditDefaultsOnly)
+	class UBoxComponent*		boxComp;
 private:
+	void SpawnCrystalLight();
 	
 };

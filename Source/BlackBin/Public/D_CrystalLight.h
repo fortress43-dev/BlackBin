@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/TimelineComponent.h"
 #include "D_CrystalLight.generated.h"
 
 UCLASS()
@@ -23,7 +24,30 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* meshComp;
-	class USphereComponent* sphereCollider;
-	class UMaterialInterface* material;
+	UPROPERTY(EditDefaultsOnly)
+	class USphereComponent*		sphereCollider;
+	UPROPERTY(EditDefaultsOnly)
+	class UMaterialInterface*	material;
+	
+	// curve float
+	float RotateValue;
+	float CurveFloatValue;
+	float TimelineValue;
+	
+	UPROPERTY(EditAnywhere)
+	UCurveFloat* AnimCurve;
+	FTimeline MyTimeline;
+
+	UPROPERTY(EditAnywhere)
+		float maxSize = 7.f;
+
+	FVector scale;
+	float curTime = 0;
+	UFUNCTION()
+	void ScaleUP();
+
+	UFUNCTION()
+	void DestroyCrystal();
 };
