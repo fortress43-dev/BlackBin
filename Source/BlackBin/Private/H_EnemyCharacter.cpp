@@ -372,8 +372,8 @@ void AH_EnemyCharacter::Checking()
         }
         else if (distance < 900 && distance > 200) {
        // if (animationFinished) {
-            arrayState = { EBossMovingState::MovingBackward, EBossMovingState::MovingForward, EBossMovingState::MovingLeft,EBossMovingState::MovingRight, EBossMovingState::Staying, EBossMovingState::Dash };
-            arrayWeight = { 0.4f, 0.6f, 0.6f, 0.6f, 0.4f, 0.4f };
+            arrayState = { EBossMovingState::MovingBackward, EBossMovingState::MovingForward, EBossMovingState::MovingLeft,EBossMovingState::MovingRight, EBossMovingState::Staying};
+            arrayWeight = { 0.4f, 0.6f, 0.6f, 0.6f, 0.4f};
 
             MoveState = GetArrayWeight(arrayState, arrayWeight);
 
