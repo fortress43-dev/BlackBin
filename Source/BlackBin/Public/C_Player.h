@@ -32,6 +32,7 @@ class BLACKBIN_API AC_Player : public AC_Mob
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* FollowCamera;
 
+		
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputMappingContext* DefaultMappingContext;
@@ -101,6 +102,9 @@ class BLACKBIN_API AC_Player : public AC_Mob
 		//TObjectPtr<class UMotionWarpingComponent> MotionWarpComponent;
 public:
 	AC_Player();
+
+	UPROPERTY()
+	class UNiagaraComponent* Trail;
 	PLAYERSTATE	State	= PLAYERSTATE::MOVEMENT;
 	UPROPERTY()
 	float	StateTimer	= 0;
@@ -168,6 +172,8 @@ protected:
 	void StateBarrier();
 	void StateRoll();
 	void StatePowerCharging(); 
+
+	TObjectPtr<class USoundBase> barriersound;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

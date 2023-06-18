@@ -15,6 +15,8 @@
 #include "C_Barrier.h"
 #include "C_HitBox.h"
 #include "C_Arrow.h"
+#include "NiagaraComponent.h"
+#include "Kismet/GameplayStatics.h"
 // Sets default values
 AC_Player::AC_Player()
 {
@@ -32,7 +34,7 @@ AC_Player::AC_Player()
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
-
+	barriersound = LoadObject<USoundBase>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/CSK/Sound/Snd_BarrierS.Snd_BarrierS'"));
 	static ConstructorHelpers::FObjectFinder<UBlueprint> BarrierObject(TEXT("/Script/Engine.Blueprint'/Game/CSK/Blueprints/BP_Barrier.BP_Barrier'"));
 	if (BarrierObject.Object)
 	{
@@ -85,8 +87,28 @@ void AC_Player::PostInitializeComponents()
 	HitBoxClass = AC_HitBox::StaticClass();
 	ArrowClass = AC_Arrow::StaticClass();
 
-
-
+	TArray<UActorComponent*> Components;
+	GetComponents(Components);
+	for (UActorComponent* Component : Components)
+	{
+		if (UNiagaraComponent* NiagaraComponent = Cast<UNiagaraComponent>(Component))
+		{
+			if (NiagaraComponent->GetName() == "Trailer")
+			{
+				Trail = NiagaraComponent;
+				UE_LOG(LogTemp, Warning, TEXT("%s"), *NiagaraComponent->GetName());
+				break;
+			}
+		}
+	}
+	if (Trail)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ASDASDAS"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FALL"));
+	}
 	AnimIns = Cast<UC_AnimInstance>(GetMesh()->GetAnimInstance());
 	AnimIns->OnMontageEnded.AddDynamic(this, &AC_Player::OnAnimeMontageEnded);
 
@@ -95,6 +117,8 @@ void AC_Player::PostInitializeComponents()
 		AnimIns->Montage_JumpToSection(FName(*FString::Printf(TEXT("Attack%d"), attackIndex + 1)), AttackMontage);
 		IsCheckCombo = false;
 		attackIndex = (attackIndex + 1) % 4;
+		Statestep = 0;
+		StateTimer = 0;
 	});
 
 	AnimIns->OnAttackHitCheck.AddLambda([this]() -> void {
@@ -139,6 +163,7 @@ void AC_Player::OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 			}
 			attackIndex = 0;
 		}
+		Trail->Deactivate();
 		IsCheckCombo = false;
 		DoCombo = false;
 	}
@@ -353,7 +378,7 @@ void AC_Player::Attack()
 
 
 
-			FVector2D MovementVector = FVector2D(0);
+			FVector2D MovementVector = FVector2D(0, 1);
 
 			const FRotator Rotation = Controller->GetControlRotation();
 			const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -363,6 +388,8 @@ void AC_Player::Attack()
 			// get right vector 
 			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
+			RotationTarget = YawRotation;
+
 			// add movement 
 			AddMovementInput(ForwardDirection, MovementVector.Y);
 			AddMovementInput(RightDirection, MovementVector.X);
@@ -370,7 +397,11 @@ void AC_Player::Attack()
 			bCancelable = false;
 			StateDirectionX = ForwardDirection;
 			StateDirectionY = RightDirection;
-			StateVector = FVector2D(FVector::RightVector);
+			UE_LOG(LogTemp, Warning, TEXT("x		: %d"), StateDirectionX);
+			UE_LOG(LogTemp, Warning, TEXT("y		: %d"), StateDirectionY);
+			StateVector = FVector2D(0, 0);
+			Statestep = 0;
+			StateTimer = 0;
 		}
 		else if (State == PLAYERSTATE::ARROW)
 		{	
@@ -423,8 +454,8 @@ void AC_Player::Roll()
 		StateDirectionX = ForwardDirection;
 		StateDirectionY = RightDirection;
 		GetCharacterMovement()->MaxWalkSpeed = 0;
-		GetCharacterMovement()->Velocity.X = YawRotation.RotateVector(FVector(StateVector.Y, StateVector.X, 0)).X * 1100;
-		GetCharacterMovement()->Velocity.Y = YawRotation.RotateVector(FVector(StateVector.Y, StateVector.X, 0)).Y*1100;
+		GetCharacterMovement()->Velocity.X = YawRotation.RotateVector(FVector(StateVector.Y, StateVector.X, 0)).X * 1500;
+		GetCharacterMovement()->Velocity.Y = YawRotation.RotateVector(FVector(StateVector.Y, StateVector.X, 0)).Y*1500;
 		GetCharacterMovement()->RotationRate = FRotator(0.0f, 1500.0f, 0.0f);
 		IsRotation = false;
 	}
@@ -508,7 +539,8 @@ void AC_Player::BarrierStart()
 		//	Barrier->Host		= this;
 		//}
 		AnimIns->IsBarrier = true;
-		zoomTarget = 370.f;
+		zoomTarget = 370.f;\
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), barriersound, GetActorLocation(), .4);
 	}
 }
 void AC_Player::BarrierEnd()
@@ -526,13 +558,11 @@ void AC_Player::BarrierEnd()
 
 void AC_Player::StateAttack()
 {
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
 	FRotator SetRot = GetActorRotation();
 	if (RotationTarget.Yaw != SetRot.Yaw)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("now		:%s"), *SetRot.ToString());
-		UE_LOG(LogTemp, Warning, TEXT("target	: %s"), *RotationTarget.ToString());
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
 		RotationTarget = YawRotation;
 
 		if (RotationTarget.Yaw > 180)
@@ -552,6 +582,16 @@ void AC_Player::StateAttack()
 			SetRot.Yaw = FMath::Lerp(SetRot.Yaw, RotationTarget.Yaw, .1);
 		}
 		SetActorRotation(SetRot);
+	}
+	if (Statestep == 0)
+	{
+		GetCharacterMovement()->Velocity.X = SetRot.Vector().X * 500;
+		GetCharacterMovement()->Velocity.Y = SetRot.Vector().Y * 500;
+		StateDirectionX = FRotationMatrix(SetRot).GetUnitAxis(EAxis::X);
+		StateDirectionY = FRotationMatrix(SetRot).GetUnitAxis(EAxis::Y);
+
+		Statestep = 1;
+		StateTimer = 0;
 	}
 }
 

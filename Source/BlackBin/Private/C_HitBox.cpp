@@ -5,6 +5,9 @@
 #include "C_Mob.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Components/BoxComponent.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
 // Sets default values
 AC_HitBox::AC_HitBox()
 {
@@ -13,17 +16,10 @@ AC_HitBox::AC_HitBox()
 
 	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
 	SetRootComponent(boxComp);
+	boxComp->SetBoxExtent(FVector(100));
+	Fx = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Script/Niagara.NiagaraSystem'/Game/CSK/Blueprints/NS_Hit.NS_Hit'"));
+	hitsound = LoadObject<USoundBase>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/CSK/Sound/Snd_Hit.Snd_Hit'"));
 
-	meshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	meshComp->SetupAttachment(boxComp);
-
-	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMesh(TEXT("/Script/Engine.StaticMesh'/Engine/BasicShapes/Cube.Cube'"));
-	if (tempMesh.Succeeded())
-	{
-		meshComp->SetStaticMesh(tempMesh.Object);
-	}
-
-	meshComp->SetCollisionProfileName(TEXT("NoCollision"));
 	//boxComp->bgenera
 
 	
@@ -62,6 +58,10 @@ void AC_HitBox::NotifyActorBeginOverlap(AActor* OtherActor)
 			{
 				printf("HIT : %d", dmg);
 				MobActor->Hit(float(dmg));
+				FVector randVec = FVector(FMath::RandRange(-50, 50), FMath::RandRange(-50, 50), FMath::RandRange(-50, 50));
+				if (Fx)
+				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Fx, GetActorLocation() + randVec);
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), hitsound, GetActorLocation() + randVec, FMath::FRandRange(.3, .4));
 			}
 
 		}

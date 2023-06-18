@@ -9,7 +9,7 @@
 
 
 #include "C_Player.h"
-
+#include "NiagaraComponent.h"
 UC_AnimInstance::UC_AnimInstance()
 {
 }
@@ -31,6 +31,7 @@ void UC_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			Velocity = CharacterMovement->Velocity;
 			FVector Acc = CharacterMovement->GetCurrentAcceleration();
 			ShouldMove = (Acc != FVector(0) && MovementSpeed > 3);
+			Host = Character;
 		}
 	}
 }
@@ -54,4 +55,21 @@ void UC_AnimInstance::AnimNotify_Cancelable()
 void UC_AnimInstance::AnimNotify_DoRotation()
 {
 	OnDoRotation.Broadcast();
+}
+
+
+void UC_AnimInstance::AnimNotify_PlayTrail()
+{
+	if (Host)
+	{
+		Host->Trail->Activate();
+	}
+}
+
+void UC_AnimInstance::AnimNotify_EndTrail()
+{
+	if (Host)
+	{
+		Host->Trail->Deactivate();
+	}
 }

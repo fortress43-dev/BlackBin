@@ -20,10 +20,9 @@ public:
 	int dmg		= 0;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-		class UBoxComponent* boxComp;
-
-		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-		class UStaticMeshComponent* meshComp;
+	class UBoxComponent* boxComp;
+	TObjectPtr<class USoundBase> hitsound;
+	TObjectPtr<class UNiagaraSystem> Fx;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

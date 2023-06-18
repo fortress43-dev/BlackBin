@@ -29,6 +29,7 @@ class BLACKBIN_API UC_AnimInstance : public UAnimInstance
 		FOnAttackHitCheckDelegate	OnAttackHitCheck;
 		FOnCancelableDelegate		OnCancelable;
 		FOnDoRotationDelegate		OnDoRotation;
+
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 			bool IsBarrier;
 	private:
@@ -44,6 +45,11 @@ class BLACKBIN_API UC_AnimInstance : public UAnimInstance
 		UFUNCTION()
 		void AnimNotify_DoRotation();
 
+		UFUNCTION()
+		void AnimNotify_EndTrail();
+
+		UFUNCTION()
+		void AnimNotify_PlayTrail();
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 			float MovementSpeed;
 
@@ -52,6 +58,9 @@ class BLACKBIN_API UC_AnimInstance : public UAnimInstance
 
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 			bool ShouldMove;
+
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 			FVector Velocity;
+
+			class AC_Player* Host;
 };
