@@ -42,6 +42,7 @@ void AC_HitBox::Tick(float DeltaTime)
 	lifeTime = FMath::Max(lifeTime - 10.f * DeltaTime, 0);
 	if (lifeTime == 0)
 	{
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1);
 		Destroy();
 	}
 }
@@ -62,6 +63,7 @@ void AC_HitBox::NotifyActorBeginOverlap(AActor* OtherActor)
 				if (Fx)
 				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Fx, GetActorLocation() + randVec);
 				UGameplayStatics::PlaySoundAtLocation(GetWorld(), hitsound, GetActorLocation() + randVec, FMath::FRandRange(.3, .4));
+				UGameplayStatics::SetGlobalTimeDilation(GetWorld(), slowmotion);
 			}
 
 		}

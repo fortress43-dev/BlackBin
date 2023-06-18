@@ -42,11 +42,15 @@ void UC_AnimInstance::AnimNotify_AttackHitCheck()
 	OnAttackHitCheck.Broadcast();
 }
 
+void UC_AnimInstance::AnimNotify_PowerAttackHitCheck()
+{
+	OnPowerAttackHitCheck.Broadcast();
+}
+
 void UC_AnimInstance::AnimNotify_NextAttackCheck()
 {
 	OnNextAttackCheck.Broadcast();
 }
-
 void UC_AnimInstance::AnimNotify_Cancelable()
 {
 	OnCancelable.Broadcast();

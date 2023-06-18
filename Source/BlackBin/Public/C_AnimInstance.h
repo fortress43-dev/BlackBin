@@ -13,6 +13,7 @@ DECLARE_MULTICAST_DELEGATE(FOnNextAttackCheckDelegate);
 DECLARE_MULTICAST_DELEGATE(FOnAttackHitCheckDelegate);
 DECLARE_MULTICAST_DELEGATE(FOnCancelableDelegate);
 DECLARE_MULTICAST_DELEGATE(FOnDoRotationDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnPowerAttackHitCheckDelegate);
 /**
  * 
  */
@@ -29,7 +30,7 @@ class BLACKBIN_API UC_AnimInstance : public UAnimInstance
 		FOnAttackHitCheckDelegate	OnAttackHitCheck;
 		FOnCancelableDelegate		OnCancelable;
 		FOnDoRotationDelegate		OnDoRotation;
-
+		FOnPowerAttackHitCheckDelegate		OnPowerAttackHitCheck;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 			bool IsBarrier;
 	private:
@@ -38,6 +39,9 @@ class BLACKBIN_API UC_AnimInstance : public UAnimInstance
 
 		UFUNCTION()
 		void AnimNotify_AttackHitCheck();
+
+		UFUNCTION()
+		void AnimNotify_PowerAttackHitCheck();
 
 		UFUNCTION()
 		void AnimNotify_Cancelable();

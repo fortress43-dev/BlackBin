@@ -135,11 +135,31 @@ void AC_Player::PostInitializeComponents()
 		if (Hitbox)
 		{
 			Hitbox->dmg = 10;
-			Hitbox->lifeTime = 10;
+			Hitbox->lifeTime = 3;
+			Hitbox->slowmotion = .5;
 			Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
 		}
 	});
+	AnimIns->OnPowerAttackHitCheck.AddLambda([this]() -> void {
 
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		FRotator rotator = GetActorRotation();
+		FVector  SpawnLocation = GetActorLocation();
+		FVector	 addLoc = GetActorForwardVector() * (100 + gagePower);
+		SpawnLocation.Z -= 50.f;
+
+		AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
+		if (Hitbox)
+		{
+			Hitbox->lifeTime = 3;
+			Hitbox->team = team;
+			Hitbox->slowmotion = .3;
+			Hitbox->dmg = 8 * (1 + gagePower / 30);
+		}
+		Hitbox->SetActorScale3D(FVector(1 + gagePower / 50));
+		Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
+		});
 	AnimIns->OnCancelable.AddLambda([this]() -> void {
 
 		bCancelable = true;
@@ -177,6 +197,17 @@ void AC_Player::OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 		GetCharacterMovement()->Velocity.X = 0;
 		GetCharacterMovement()->Velocity.Y = 0;
 		GetCharacterMovement()->RotationRate = FRotator(0.0f, 700.0f, 0.0f);
+	}
+	else if (Montage == PowerAttackChargingMontage)
+	{
+		if (!DoCombo)
+		{
+			if (!bInterrupted)//정상 종료
+			{
+				StateReset();
+			}
+		}
+		Trail->Deactivate();
 	}
 }
 void AC_Player::BeginPlay()
@@ -508,6 +539,30 @@ void AC_Player::PowerAttackEnd()
 		StateTimer = 0;
 		Statestep = 0;
 		GetCharacterMovement()->MaxWalkSpeed = 200;
+		FVector2D MovementVector = FVector2D(0, 1);
+
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// get forward vector
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		// get right vector 
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		RotationTarget = YawRotation;
+
+		// add movement 
+		AddMovementInput(ForwardDirection, MovementVector.Y);
+		AddMovementInput(RightDirection, MovementVector.X);
+
+		bCancelable = false;
+		StateDirectionX = ForwardDirection;
+		StateDirectionY = RightDirection;
+		UE_LOG(LogTemp, Warning, TEXT("x		: %d"), StateDirectionX);
+		UE_LOG(LogTemp, Warning, TEXT("y		: %d"), StateDirectionY);
+		StateVector = FVector2D(0, 0);
+		Statestep = 0;
+		StateTimer = 0;
 		AnimIns->Montage_Play(PowerAttackMontage, 1, EMontagePlayReturnType::MontageLength, .5f);
 	}
 }
@@ -597,33 +652,18 @@ void AC_Player::StateAttack()
 
 void AC_Player::StatePowerAttack()
 {
-	switch (Statestep)
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+	FRotator SetRot = GetActorRotation();
+	if (Statestep == 0)
 	{
-	case 0:
-		if (StateTimer++ < 20)
-			break;
-		Statestep++;
-		break;
-	case 1:
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		FRotator rotator = GetActorRotation();
-		FVector  SpawnLocation = GetActorLocation();
-		FVector	 addLoc = GetActorForwardVector() * (100 + gagePower);
-		SpawnLocation.Z -= 50.f;
+		GetCharacterMovement()->Velocity.X = SetRot.Vector().X * 500;
+		GetCharacterMovement()->Velocity.Y = SetRot.Vector().Y * 500;
+		StateDirectionX = FRotationMatrix(SetRot).GetUnitAxis(EAxis::X);
+		StateDirectionY = FRotationMatrix(SetRot).GetUnitAxis(EAxis::Y);
 
-		AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
-		if (Hitbox)
-		{
-			Hitbox->lifeTime = 10;
-			Hitbox->team = team;
-			Hitbox->dmg = 8 * (1 + gagePower / 30);
-		}
-			Hitbox->SetActorScale3D(FVector(1 + gagePower/50));
-			Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
-		Statestep = MOB_STATEEND;
-		gagePower = 0;
-		break;
+		Statestep = 1;
+		StateTimer = 0;
 	}
 }
 void AC_Player::StateRoll()
