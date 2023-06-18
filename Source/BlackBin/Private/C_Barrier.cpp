@@ -23,7 +23,6 @@ AC_Barrier::~AC_Barrier()
 void AC_Barrier::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
