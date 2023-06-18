@@ -6,6 +6,7 @@
 #include "D_StartStoryWidget.h"
 #include "MainMenuWidget.h"
 #include "DebugMessages.h"
+#include <UMG/Public/Components/CanvasPanel.h>
 
 
 // <UI 표시조건>
@@ -27,7 +28,7 @@ AD_GameManager::AD_GameManager()
 	// 시작할 때의 메뉴. 게임난이도 / 계속하기 / 끝내기 등 선택가능
 	ConstructorHelpers::FClassFinder<UMainMenuWidget> tmpMainWidget(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/DKW/UI/BP_MainMenuWidget.BP_MainMenuWidget_C'"));
 	if (tmpMainWidget.Succeeded()) {
-		mainMenuWidget = tmpMainWidget.Class;
+		mainMenuWidgetSource = tmpMainWidget.Class;
 	}
 
 	// #StartStoryWidget 
@@ -35,7 +36,7 @@ AD_GameManager::AD_GameManager()
 	// 후에 시네마틱들을 플레이하는 용도로 사용할 계획
 	ConstructorHelpers::FClassFinder<UD_StartStoryWidget> tmpStoryWidget(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/DKW/UI/BP_StoryStartWidget.BP_StoryStartWidget_C'"));
 	if (tmpStoryWidget.Succeeded()) {
-		startStoryWidget = tmpStoryWidget.Class;
+		startStoryWidgetSource = tmpStoryWidget.Class;
 	}
 
 	// #OnGameWidget
@@ -43,7 +44,7 @@ AD_GameManager::AD_GameManager()
 	// 보스전 UI를 함께 포함한다/ 패널로 분리하여 관리
 	ConstructorHelpers::FClassFinder<UD_OnGameWidget> tmpOnGameWidget(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/DKW/UI/BP_OnGameWidget.BP_OnGameWidget_C'"));
 	if (tmpOnGameWidget.Succeeded()) {
-		onGameWidget = tmpOnGameWidget.Class;
+		onGameWidgetSource = tmpOnGameWidget.Class;
 	}
 
 #pragma endregion
@@ -56,8 +57,8 @@ void AD_GameManager::BeginPlay()
 	Super::BeginPlay();
 	// #RoadDefaultWidget
 	// 시작할 때는 각 레벨의 기본 위젯을 소환한다
-	// Level : Start      Widget :  mainMenuWidget
-	// Level : Main       Widget :  startStoryWidget
+	// Level : MainMenu      Widget :  mainMenuWidget
+	// Level : OnGame        Widget :  startStoryWidget
 
 	// map 이름을 검색한다
 	// map 이름에 따른  switch  분기를 나눈다
@@ -67,12 +68,12 @@ void AD_GameManager::BeginPlay()
 	FString curMapName = GetWorld()->GetMapName();
 	printf("%s", *curMapName);
 	if (curMapName.Contains(MainMenuLevelName, ESearchCase::IgnoreCase)){
-		if (mainMenuWidget) {
-			ShowMainWidget();
+		if (mainMenuWidgetSource) {
+			ShowMainWidget(0);
 		}
 	}
 	else if(curMapName.Contains(OnGameLevelName, ESearchCase::IgnoreCase)){
-		if (startStoryWidget) {
+		if (startStoryWidgetSource && onGameWidgetSource) {
 			ShowStoryWidget(1);
 			ShowOnGameWidget(0);
 		}
@@ -85,25 +86,26 @@ void AD_GameManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+#pragma region Show Widgets
+
 //Show Main widgets
 void AD_GameManager::ShowMainWidget(int zOrder = 0) {
 	// #FunctionDescribtion
 	// 마우스를 보이게 한다 
 	// Main Widget 을 viewport 에 띄운다
 	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
-	UMainMenuWidget* ui = CreateWidget<UMainMenuWidget>(GetWorld(), mainMenuWidget);
-	ui->AddToViewport(zOrder);
+	mainMenuWidget = CreateWidget<UMainMenuWidget>(GetWorld(), mainMenuWidgetSource);
+	mainMenuWidget->AddToViewport(zOrder);
 }
 
 //ShowStrotyWidget
 void AD_GameManager::ShowStoryWidget(int zOrder = 0) {
 	// #FunctionDescribtion
-		// 마우스를 보이게 한다 
-		// Main Widget 을 viewport 에 띄운다
+	// 마우스를 보이게 한다 
+	// Main Widget 을 viewport 에 띄운다
 	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
-	UD_StartStoryWidget* ui = CreateWidget<UD_StartStoryWidget>(GetWorld(), startStoryWidget);
-	ui->AddToViewport(zOrder);
-	
+	startStoryWidget = CreateWidget<UD_StartStoryWidget>(GetWorld(), startStoryWidgetSource);
+	startStoryWidget->AddToViewport(zOrder);
 }
 
 //ShowOnGameWidget
@@ -112,11 +114,53 @@ void AD_GameManager::ShowOnGameWidget(int zOrder = 0) {
 		// 마우스를 보이게 한다 
 		// Main Widget 을 viewport 에 띄운다
 	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
-	UD_OnGameWidget* ui = CreateWidget<UD_OnGameWidget>(GetWorld(), onGameWidget);
-	ui->AddToViewport(zOrder);
-}
-
-//Show skill GuideText
-void AD_GameManager::ShowGuideTest(EGuideText guide) {
+	onGameWidget = CreateWidget<UD_OnGameWidget>(GetWorld(), onGameWidgetSource);
+	onGameWidget->AddToViewport(zOrder);
 	
 }
+
+#pragma endregion
+
+#pragma region Controll WidgetElements
+// Show skill GuideText
+// 사용법   : ShowGuideText(EGuideText::Barrier);
+// 사용위젯 : onGameWidget
+void AD_GameManager::ShowGuideText(EGuideText guide) {
+
+	// 요구한 것에 맞는 가이드를 표시한다
+	// 종료조건이 충족되면 가이드를 종료한다
+	// 종료조건의 종류 : 시간, 키입력
+	// 
+	// 여러 종류조건을 담을 수 있는 bool 함수가 필요하다
+
+
+	switch (guide)
+	{
+	case Barrier:
+		print("Press E to use Barrier");
+		// E 키를 누르면 visible 이 꺼진다
+		// 요구조건 : Key 입력을 인식해야 한다
+		// 어떻게 해야 할지 모름 - 찾기
+
+		break;
+	default:
+		break;
+	}
+}
+
+// Set UI Panel for battle like Boss HP, Player HP
+// 사용위젯 : onGameWidget
+void AD_GameManager::SetBattlePanelVisibility(bool isVisible) {
+	// onGameWidget의 battle Panel 을 활성화시킨다
+	if (onGameWidget) {
+		if (isVisible) {
+			onGameWidget->PanelBattle->Visibility = ESlateVisibility::Visible;
+		}
+		else{
+			onGameWidget->PanelBattle->Visibility = ESlateVisibility::Hidden;
+		}
+	}
+}
+
+#pragma endregion
+

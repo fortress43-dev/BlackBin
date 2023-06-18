@@ -36,18 +36,19 @@ public:
 	TSubclassOf<class UMainMenuWidget> mainMenuWidgetSource;
 	
 	UPROPERTY(EditAnywhere, Category = "Widgets")
-	TSubclassOf<class UD_StartStoryWidget> mainMenuWidgetSource;
+	TSubclassOf<class UD_StartStoryWidget> startStoryWidgetSource;
 	
 	UPROPERTY(EditAnywhere, Category = "Widgets")
-	TSubclassOf<class UD_OnGameWidget> mainMenuWidgetSource;
+	TSubclassOf<class UD_OnGameWidget> onGameWidgetSource;
 
 	//Created Widget
 	UPROPERTY()
-	class UD_StartStoryWidget* ui;
+	class UMainMenuWidget* mainMenuWidget = nullptr;
 	UPROPERTY()
-	class UD_OnGameWidget* ui;
+	class UD_StartStoryWidget* startStoryWidget = nullptr;
 	UPROPERTY()
-	class UMainMenuWidget* ui;
+	class UD_OnGameWidget* onGameWidget = nullptr;
+	
 	
 
 #pragma endregion
@@ -62,11 +63,12 @@ public:
 
 #pragma region Functions
 	
-	void ShowMainWidget(int);
-	void ShowStoryWidget(int);
-	void ShowOnGameWidget(int);
+	void ShowMainWidget(int zOrder);
+	void ShowStoryWidget(int zOrder);
+	void ShowOnGameWidget(int zOrder);
 
-	void ShowGuideTest(EGuideText);
+	void ShowGuideText(EGuideText);
+	void SetBattlePanelVisibility(bool);
 
 #pragma endregion
 
