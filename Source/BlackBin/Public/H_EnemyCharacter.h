@@ -16,10 +16,10 @@ enum class EBossMovingState : uint8
     MovingRight,
     Staying,
     Attacking,
-	Dash,
-	BackStep,
-    //SAttack,
-
+    Dash,
+    BackStep,
+    SAttack,
+    Idle,
 };
 
 UCLASS()
@@ -72,12 +72,14 @@ public:
     TArray<EBossMovingState> arrayState;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TArray<float> arrayWeight;
-
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
+    USkeletalMeshComponent* MeshComponent;
 
    
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = STATE)
-        EBossMovingState MoveState = EBossMovingState::Dash;
+        EBossMovingState MoveState = EBossMovingState::Idle;
 
+    void Idle();
     void MovingBackward();
     void MovingForward();
     void MovingLeft();
@@ -86,7 +88,7 @@ public:
     void Attacking();
     void Dash();
     void BackStep();
-    //void SAttack();
+    void SAttack();
     void BackMove();
     void Checking();
     void SpawnHitBox();
@@ -94,6 +96,15 @@ public:
     void FirstBasicAttack();
     void SecondBasicAttack();
     void ThirdBasicAttack();
+    void RightMoveAnim();
+    void LeftMoveAnim();
+    void ForwardMoveAnim();
+    void BackwardMoveAnim();
+    void IdleAnim();
+    //void ChangeState(EBossMovingState NewState);
+    void TimerEvent();
+    //UAnimInstance* GetAnimationInstance();
+   // UAnimInstance* GetAnimationMontage(EBossMovingState State);
     EBossMovingState GetArrayWeight(const TArray<EBossMovingState>& ArrayState, const TArray<float>& ArrayWeight);
 
 private:
@@ -117,10 +128,15 @@ private:
     float distance;
     float playerDistance;
     float ct = 0;
-    float backwardSpeed = 600;
     float ct1 = 0;
+    float backwardSpeed = 600;
+    float ct2 = 0;
     int randomN;
-    int ranTime = FMath::RandRange(2, 5);
+    int ranTime;
+    float StateTimer;
+    bool animationFinished = false;
+    FTimerHandle TimerHandle;
+    UAnimMontage* CurrentMontage;
     
 };
 

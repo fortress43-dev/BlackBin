@@ -42,6 +42,36 @@ UH_AnimInst::UH_AnimInst()
     {
         BasicAttackTwoMongtage = BasicTwoMong.Object;
     }
+
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> MovingRight(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/HM_MovingRight.HM_MovingRight'"));
+    if (MovingRight.Succeeded())
+    {
+        MoveRightMongtage = MovingRight.Object;
+    }
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> MovingLeft(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/HM_MovingLeft.HM_MovingLeft'"));
+    if (MovingLeft.Succeeded())
+    {
+        MoveLeftMongtage = MovingLeft.Object;
+    }
+
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> MovingBackward(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/HM_MovingBackward.HM_MovingBackward'"));
+    if (MovingBackward.Succeeded())
+    {
+        MoveBackwardMongtage = MovingBackward.Object;
+    }
+
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> MovingForward(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/HM_MovingForward.HM_MovingForward'"));
+    if (MovingForward.Succeeded())
+    {
+        MpveForwardMongtage = MovingForward.Object;
+    }
+
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> MovingIdle(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/HM_MovingIdle.HM_MovingIdle'"));
+    if (MovingIdle.Succeeded())
+    {
+        IdleMongtage = MovingIdle.Object;
+    }
+
 }
 
 void UH_AnimInst::NativeUpdateAnimation(float DeltaSeconds)
@@ -110,5 +140,45 @@ void UH_AnimInst::PlayBasicAttackTwoMongtage()
     if (!Montage_IsPlaying(BasicAttackTwoMongtage))
     {
         Montage_Play(BasicAttackTwoMongtage, 1.0f);
+    }
+}
+
+void UH_AnimInst::PlayMovingForwardMontage()
+{
+    if (!Montage_IsPlaying(MpveForwardMongtage))
+    {
+        Montage_Play(MpveForwardMongtage, 1.0f);
+    }
+}
+
+void UH_AnimInst::PlayMovingBackwardMontage()
+{
+    if (!Montage_IsPlaying(MoveBackwardMongtage))
+    {
+        Montage_Play(MoveBackwardMongtage, 1.0f);
+    }
+}
+
+void UH_AnimInst::PlayMovingRightMongtage()
+{
+    if (!Montage_IsPlaying(MoveRightMongtage))
+    {
+        Montage_Play(MoveRightMongtage, 1.0f);
+    }
+}
+
+void UH_AnimInst::PlayMovingLeftMongtage()
+{
+    if (!Montage_IsPlaying(MoveLeftMongtage))
+    {
+        Montage_Play(MoveLeftMongtage, 1.0f);
+    }
+}
+
+void UH_AnimInst::PlayMovingIdleMongtage()
+{
+    if (!Montage_IsPlaying(IdleMongtage))
+    {
+        Montage_Play(IdleMongtage, 1.0f);
     }
 }

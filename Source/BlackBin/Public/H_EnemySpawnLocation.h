@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "H_EnemySpawner.generated.h"
+#include "H_EnemySpawnLocation.generated.h"
 
 UCLASS()
-class BLACKBIN_API AH_EnemySpawner : public AActor
+class BLACKBIN_API AH_EnemySpawnLocation : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AH_EnemySpawner();
+	AH_EnemySpawnLocation();
 
 protected:
 	// Called when the game starts or when spawned
@@ -22,14 +22,9 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Spawning")
-		TSubclassOf<class AH_EnemyCharacter> EnemyCharacterClass;
-	
-	UPROPERTY()
-	class AH_EnemySpawnLocation* Target;
-	void SpawnEnemy();
-	void OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor);
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* BoxComp;
+
+	UPROPERTY(EditAnywhere)
+	class UStaticMeshComponent* MeshComp;
 };
