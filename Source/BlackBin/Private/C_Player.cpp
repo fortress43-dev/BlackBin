@@ -17,6 +17,7 @@
 #include "C_Arrow.h"
 #include "NiagaraComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "DebugMessages.h"
 // Sets default values
 AC_Player::AC_Player()
 {
@@ -35,10 +36,10 @@ AC_Player::AC_Player()
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 	barriersound = LoadObject<USoundBase>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/CSK/Sound/Snd_BarrierS.Snd_BarrierS'"));
-	static ConstructorHelpers::FObjectFinder<UBlueprint> BarrierObject(TEXT("/Script/Engine.Blueprint'/Game/CSK/Blueprints/BP_Barrier.BP_Barrier'"));
-	if (BarrierObject.Object)
+	static ConstructorHelpers::FClassFinder<AC_Barrier> BarrierObject(TEXT("/Script/Engine.Blueprint'/Game/DKW/Blueprints/BP_Barrier.BP_Barrier_C'"));
+	if (BarrierObject.Succeeded())
 	{
-		BarrierClass = (UClass*)BarrierObject.Object->GeneratedClass;
+		BarrierClass = BarrierObject.Class;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UBlueprint> HitBoxObject(TEXT("/Script/Engine.Blueprint'/Game/CSK/Blueprints/BP_HitBox.BP_HitBox'"));
@@ -83,7 +84,6 @@ void AC_Player::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	BarrierClass = AC_Barrier::StaticClass();
 	HitBoxClass = AC_HitBox::StaticClass();
 	ArrowClass = AC_Arrow::StaticClass();
 
@@ -569,10 +569,11 @@ void AC_Player::PowerAttackEnd()
 
 void AC_Player::BarrierStart()
 {
-	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT)
+	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT && !Barrier)
 	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		FRotator rotator;
 		FVector  SpawnLocation = GetActorLocation();
 		//SpawnLocation.Z += 1050.0f;
@@ -587,14 +588,14 @@ void AC_Player::BarrierStart()
 		RotationTarget = YawRotation;
 
 		StateVector = FVector2D(0);
-		//Barrier = GetWorld()->SpawnActor<AC_Barrier>(BarrierClass, SpawnLocation, rotator, SpawnParams);
-		//if (Barrier)
-		//{
-		//	Barrier->lifeTime	= 100;
-		//	Barrier->Host		= this;
-		//}
+		Barrier = GetWorld()->SpawnActor<AC_Barrier>(BarrierClass, SpawnLocation, rotator, SpawnParams);
+		if (Barrier)
+		{
+			Barrier->lifeTime	= 100;
+			Barrier->Host		= this;
+		}
 		AnimIns->IsBarrier = true;
-		zoomTarget = 370.f;\
+		zoomTarget = 370.f;
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), barriersound, GetActorLocation(), .4);
 	}
 }
@@ -602,7 +603,10 @@ void AC_Player::BarrierEnd()
 {
 	if (Controller != nullptr)
 	{
-		//Barrier->IsBoom = true;
+		if (Barrier)
+		{
+			Barrier->IsBoom = true;
+		}
 		State = PLAYERSTATE::MOVEMENT;
 		GetCharacterMovement()->MaxWalkSpeed = 200;
 		AnimIns->Montage_Play(PopMontage, 2);
