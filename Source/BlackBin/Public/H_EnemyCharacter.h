@@ -124,6 +124,7 @@ private:
     FVector EnemyLoc;
     FVector dir; // Movement direction
     FRotator EnemyRot;
+    FVector Direc;
     float dt;
     float distance;
     float playerDistance;

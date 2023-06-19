@@ -68,7 +68,7 @@ void AH_EnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
     //GetWorldTimerManager().SetTimer(TimerHandle, this, &AH_EnemyCharacter::TimerEvent, 3.0f, true);
-    
+   
 }
 //void AH_EnemyCharacter::TimerEvent()
 //{
@@ -100,8 +100,8 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
     // 적과 나의 방향과 거리를 알고싶다.
     if (PlayerCharacter)
     {
-        FVector enemyLocation = GetActorLocation();
-        FVector playerLocation = PlayerCharacter->GetActorLocation();
+		FVector enemyLocation = GetActorLocation();
+		FVector playerLocation = PlayerCharacter->GetActorLocation();
         distance = FVector::Distance(enemyLocation, playerLocation);
 
         FVector Direction = (playerLocation - enemyLocation).GetSafeNormal();
