@@ -181,7 +181,7 @@ void AH_EnemyCharacter::Idle()
 
 void AH_EnemyCharacter::MovingBackward()
 {
-    //BackwardMoveAnim();
+    BackwardMoveAnim();
     dir = PlayerLoc - EnemyLoc;
     dir.Normalize();
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
@@ -194,7 +194,7 @@ void AH_EnemyCharacter::MovingBackward()
 
 void AH_EnemyCharacter::MovingForward()
 {
-    //ForwardMoveAnim();
+    ForwardMoveAnim();
     dir = PlayerLoc - EnemyLoc;
     dir.Normalize();
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
@@ -208,7 +208,7 @@ void AH_EnemyCharacter::MovingForward()
 
 void AH_EnemyCharacter::MovingRight()
 {
-    //RightMoveAnim();
+    RightMoveAnim();
 // 오른쪽으로 이동하는 로직 구현
     dir = PlayerLoc - EnemyLoc;
     dir.Normalize();
@@ -224,7 +224,7 @@ void AH_EnemyCharacter::MovingRight()
 
 void AH_EnemyCharacter::MovingLeft()
 {
-    //LeftMoveAnim();
+    LeftMoveAnim();
    
     dir = PlayerLoc - EnemyLoc;
     dir.Normalize();
@@ -471,6 +471,7 @@ void AH_EnemyCharacter::SpawnHitBox()
 
 void AH_EnemyCharacter::SAttackMongtage()
 {
+    
     auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
     if (nullptr == AnimInstance) return;
     

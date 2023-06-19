@@ -102,7 +102,7 @@ public:
     void BackwardMoveAnim();
     void IdleAnim();
     //void ChangeState(EBossMovingState NewState);
-    void TimerEvent();
+    //void TimerEvent();
     //UAnimInstance* GetAnimationInstance();
    // UAnimInstance* GetAnimationMontage(EBossMovingState State);
     EBossMovingState GetArrayWeight(const TArray<EBossMovingState>& ArrayState, const TArray<float>& ArrayWeight);

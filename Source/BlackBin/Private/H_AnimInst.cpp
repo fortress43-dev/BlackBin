@@ -97,6 +97,7 @@ void UH_AnimInst::NativeUpdateAnimation(float DeltaSeconds)
 
 void UH_AnimInst::PlaySAttackMontage()
 {
+    
     if (!Montage_IsPlaying(SAttackMontage))
     {
         Montage_Play(SAttackMontage, 1.0f);
