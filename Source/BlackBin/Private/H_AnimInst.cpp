@@ -10,6 +10,7 @@ UH_AnimInst::UH_AnimInst()
     static ConstructorHelpers::FObjectFinder<UAnimMontage> SAttack(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/HM_SAttack.HM_SAttack'"));
     if (SAttack.Succeeded())
     {
+        UE_LOG(LogTemp, Warning, TEXT("adafaf"));
         SAttackMontage = SAttack.Object;
     }
 
