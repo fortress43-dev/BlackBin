@@ -136,7 +136,7 @@ void AC_Player::PostInitializeComponents()
 		{
 			Hitbox->dmg = 10;
 			Hitbox->lifeTime = 3;
-			Hitbox->slowmotion = .5;
+			Hitbox->slowmotion = .8;
 			Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
 		}
 	});
