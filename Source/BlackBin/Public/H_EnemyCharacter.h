@@ -18,7 +18,8 @@ enum class EBossMovingState : uint8
     Attacking,
     Dash,
     BackStep,
-
+    SAttack,
+    Idle,
 };
 
 UCLASS()
@@ -71,11 +72,14 @@ public:
     TArray<EBossMovingState> arrayState;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TArray<float> arrayWeight;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
+    USkeletalMeshComponent* MeshComponent;
 
    
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = STATE)
-        EBossMovingState MoveState = EBossMovingState::Dash;
+        EBossMovingState MoveState = EBossMovingState::Idle;
 
+    void Idle();
     void MovingBackward();
     void MovingForward();
     void MovingLeft();
@@ -84,26 +88,55 @@ public:
     void Attacking();
     void Dash();
     void BackStep();
+    void SAttack();
+    void BackMove();
     void Checking();
     void SpawnHitBox();
-
+    void SAttackMongtage();
+    void FirstBasicAttack();
+    void SecondBasicAttack();
+    void ThirdBasicAttack();
+    void RightMoveAnim();
+    void LeftMoveAnim();
+    void ForwardMoveAnim();
+    void BackwardMoveAnim();
+    void IdleAnim();
+    //void ChangeState(EBossMovingState NewState);
+    void TimerEvent();
+    //UAnimInstance* GetAnimationInstance();
+   // UAnimInstance* GetAnimationMontage(EBossMovingState State);
     EBossMovingState GetArrayWeight(const TArray<EBossMovingState>& ArrayState, const TArray<float>& ArrayWeight);
 
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-        class UStaticMeshComponent* meshComp;
+    class UStaticMeshComponent* meshComp;
+
+    //나중에 백스텝 한번에 할떄 쓰기
+    /*UFUNCTION()
+    void AnimEnded(UAnimMontage* Montage, bool bInterrupted);
+
+    UPROPERTY()
+    class UH_AnimInst* AnimIns;
+
+    virtual void PostInitializeComponents() override;*/
 
     FVector PlayerLoc;
     FVector EnemyLoc;
     FVector dir; // Movement direction
+    FRotator EnemyRot;
     float dt;
     float distance;
     float playerDistance;
     float ct = 0;
-    float backwardSpeed = 600;
     float ct1 = 0;
+    float backwardSpeed = 600;
+    float ct2 = 0;
     int randomN;
     int ranTime;
+    float StateTimer;
+    bool animationFinished = false;
+    FTimerHandle TimerHandle;
+    UAnimMontage* CurrentMontage;
     
 };
 
