@@ -83,15 +83,15 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
     dt = DeltaTime;
     ct += DeltaTime;
     ct2 += DeltaTime;
-    if (MoveState != EBossMovingState::Dash && MoveState != EBossMovingState::Idle) {
+    if (MoveState != EBossMovingState::Dash) {
         StateTimer += DeltaTime;
         
     }
-    if (StateTimer > FMath::FRandRange(2.f,5.f))
+    if (StateTimer > 2.f)
     {
         
         Checking();
-        StateTimer = 0;
+        StateTimer = -FMath::FRandRange(1.f, 3.f);
     }
     // Find the player character in the world
     ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(this, 0);
@@ -325,7 +325,6 @@ void AH_EnemyCharacter::BackStep()
         GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
         AddMovementInput(dir * -1);
         GetCharacterMovement()->MaxWalkSpeed = 1500;
-        
     }
 
 }
