@@ -4,14 +4,12 @@
 
 #include "C_Mob.h"
 #include "InputActionValue.h"
-#include "C_Barrier.h"
-#include "C_HitBox.h"
-#include "D_RotManager.h"
 #include "C_Player.generated.h"
 
 #define MOB_STATEEND 100;
 enum class PLAYERSTATE
 {
+	DEFAULT,
 	MOVEMENT,
 	ATTACK,
 	ROLL,
@@ -34,6 +32,7 @@ class BLACKBIN_API AC_Player : public AC_Mob
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* FollowCamera;
 
+		
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputMappingContext* DefaultMappingContext;
@@ -69,16 +68,13 @@ class BLACKBIN_API AC_Player : public AC_Mob
 		class UInputAction* ArrowAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* RotAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* InterAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* AttackMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* PowerAttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* PopMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* PowerAttackChargingMontage;
@@ -87,27 +83,62 @@ class BLACKBIN_API AC_Player : public AC_Mob
 		class UAnimMontage* RollMontage;
 
 	UPROPERTY(EditAnywhere)
-		TSubclassOf<AC_Barrier> BarrierClass = AC_Barrier::StaticClass();
+		TSubclassOf<class AC_Barrier> BarrierClass;
+	
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class AC_HitBox> HitBoxClass;
 
 	UPROPERTY(EditAnywhere)
-		TSubclassOf<AC_HitBox> HitBoxClass = AC_HitBox::StaticClass();
+		TSubclassOf<class AC_Arrow> ArrowClass;
 
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<AC_Arrow> ArrowClass = AC_Arrow::StaticClass();
+	UPROPERTY()
+		class UC_AnimInstance* AnimIns;
+
+	UFUNCTION()
+		void OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	virtual void PostInitializeComponents() override;
 	//UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		//TObjectPtr<class UMotionWarpingComponent> MotionWarpComponent;
 public:
 	AC_Player();
+
+	UPROPERTY()
+	class UNiagaraComponent* Trail;
 	PLAYERSTATE	State	= PLAYERSTATE::MOVEMENT;
+	UPROPERTY()
 	float	StateTimer	= 0;
+	UPROPERTY()
 	float	gagePower	= 0;
+	UPROPERTY()
+	float	gageArrow	= 0;
+	UPROPERTY()
 	float	BarrierShield = 100;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	AD_RotManager* RotManager;
-	AC_Barrier* Barrier;
+	UPROPERTY()
+	float	zoomTarget;
+	UPROPERTY()
+	FRotator	RotationTarget;
+	UPROPERTY()
+	bool	IsRotation		= true;
+	UPROPERTY()
+	bool	IsCheckCombo	= false;
+	UPROPERTY()
+	bool	bCancelable		= false;
+	UPROPERTY()
+	bool	DoCombo			= false;
+	UPROPERTY()
+	int		attackIndex	= 0;
+	UPROPERTY()
+	class AC_Barrier* Barrier;
+	UPROPERTY()
 	FVector StateDirectionX;
+	UPROPERTY()
 	FVector StateDirectionY;
+	UPROPERTY()
 	FVector2D StateVector;
+	UPROPERTY()
+	FVector2D PlayerVector;
+
 	virtual void Hit(float value) override;
 protected:
 	int Statestep		= 0;
@@ -127,6 +158,7 @@ protected:
 	void BarrierEnd();
 
 	void Attack();
+	void ArrowAttack();
 	void PowerAttackStart();
 	void PowerAttackEnd();
 	void ArrowStart();
@@ -139,10 +171,9 @@ protected:
 	void StatePowerAttack();
 	void StateBarrier();
 	void StateRoll();
-	void StatePowerCharging();
+	void StatePowerCharging(); 
 
-	void RotActionStart();
-	void InterActionStart();
+	TObjectPtr<class USoundBase> barriersound;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

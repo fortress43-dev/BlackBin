@@ -18,10 +18,12 @@ public:
 	int team	= 0;
 	UPROPERTY(EditAnywhere)
 	int dmg		= 0;
-
+	UPROPERTY(EditAnywhere)
+	float slowmotion = 1;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-		class UBoxComponent* boxComp;
-
+	class UBoxComponent* boxComp;
+	TObjectPtr<class USoundBase> hitsound;
+	TObjectPtr<class UNiagaraSystem> Fx;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
