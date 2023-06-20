@@ -335,7 +335,10 @@ void AH_EnemyCharacter::SAttack(){
 
     SAttackMongtage();
     SpawnHitBox();
-    CheckSAttack();
+    if (ct2 > 4) {
+        Checking();
+    }
+    //CheckSAttack();
 }
 
 void AH_EnemyCharacter::BackMove()
