@@ -152,6 +152,7 @@ void AD_GameManager::ShowGuideText(EGuideText guide) {
 // 사용위젯 : onGameWidget
 void AD_GameManager::SetBattlePanelVisibility(bool isVisible) {
 	// onGameWidget의 battle Panel 을 활성화시킨다
+<<<<<<< HEAD
 	//if (onGameWidget) {
 	//	if (isVisible) {
 	//		onGameWidget->PanelBattle->Visibility = ESlateVisibility::Visible;
