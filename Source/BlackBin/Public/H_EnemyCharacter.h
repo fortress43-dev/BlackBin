@@ -6,13 +6,19 @@
 #include "GameFramework/Character.h"
 #include "H_EnemyCharacter.generated.h"
 
+
 UENUM(BlueprintType)
-enum class EBossState : uint8
+enum class EBossMovingState : uint8
 {
-    DEFAULT,
-    ATTACK,
-    DASHING,
-    MoveBack,
+    MovingBackward,
+    MovingForward,
+    MovingLeft,
+    MovingRight,
+    Staying,
+    Attacking,
+    Dash,
+    BackStep,
+
 };
 
 UCLASS()
@@ -43,10 +49,10 @@ public:
         TSubclassOf<AC_HitBox> HitBoxClass = AC_HitBox::StaticClass();
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        float bossIsFar = 1000;
+        float bossIsFar = 800;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        float bossIsClose = 400;
+        float bossIsClose = 200;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float moveSpeed; // Movement speed
@@ -57,22 +63,31 @@ public:
         float bossStanceMode = 1600.0f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         int32 randomNumber;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        int NumberPercentage = 30;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        int randDeg;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<EBossMovingState> arrayState;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<float> arrayWeight;
 
+   
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = STATE)
+        EBossMovingState MoveState = EBossMovingState::Dash;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = FSM)
-        EBossState bState = EBossState::DEFAULT;
-
-
-    void MoveBackward();
-    
-    //기본 이동상태
-    void DEFAULTState();
-    //기본 공격 상태
-    void ATTACKState();
-    //대쉬중
-    void DASHINGState();
-
+    void MovingBackward();
+    void MovingForward();
+    void MovingLeft();
+    void MovingRight();
+    void Staying();
+    void Attacking();
+    void Dash();
+    void BackStep();
+    void Checking();
     void SpawnHitBox();
+
+    EBossMovingState GetArrayWeight(const TArray<EBossMovingState>& ArrayState, const TArray<float>& ArrayWeight);
 
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
@@ -86,8 +101,10 @@ private:
     float playerDistance;
     float ct = 0;
     float backwardSpeed = 600;
-    bool IsBackStep;
     float ct1 = 0;
+    int randomN;
+    int ranTime;
+    
 };
 
 
