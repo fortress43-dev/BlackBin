@@ -13,12 +13,9 @@ UCLASS()
 class BLACKBIN_API UD_OnGameWidget : public UUserWidget
 {
 	GENERATED_BODY()
-<<<<<<< HEAD
-=======
+
 
 public:
 	//virtual void NativeConstruct() override;
 
-
->>>>>>> DKW_alpha_fromMain
 };
