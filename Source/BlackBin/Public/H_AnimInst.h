@@ -17,10 +17,60 @@ class BLACKBIN_API UH_AnimInst : public UAnimInstance
 		UH_AnimInst();
 	virtual void NativeUpdateAnimation(float DeltaSeconds)override;
 
-
 public:
+
+	void PlaySAttackMontage();
+
+	void PlayRunMontage();
+
+	void PlayBackmoveMontage();
+
+	void PlayBasicAttackMongtage();
+
+	void PlayBasicAttackOneMongtage();
+
+	void PlayBasicAttackTwoMongtage();
+
+	void PlayMovingForwardMontage();
+
+	void PlayMovingBackwardMontage();
+
+	void PlayMovingRightMongtage();
+
+	void PlayMovingLeftMongtage();
+
+	void PlayMovingIdleMongtage();
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FVector Velocity;
-
 	
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+    UAnimMontage* SAttackMontage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* RunningMongtage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* BackMoveMongtage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* BasicAttackMongtage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* BasicAttackOneMongtage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* BasicAttackTwoMongtage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* MoveRightMongtage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* MoveLeftMongtage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* MoveBackwardMongtage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* MpveForwardMongtage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* IdleMongtage;
+
+
+
+
+
+
+
 };

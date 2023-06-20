@@ -160,6 +160,16 @@ void AD_GameManager::SetBattlePanelVisibility(bool isVisible) {
 	//		onGameWidget->PanelBattle->Visibility = ESlateVisibility::Hidden;
 	//	}
 	//}
+=======
+	/*if (onGameWidget) {
+		if (isVisible) {
+			onGameWidget->PanelBattle->Visibility = ESlateVisibility::Visible;
+		}
+		else{
+			onGameWidget->PanelBattle->Visibility = ESlateVisibility::Hidden;
+		}
+	}*/
+>>>>>>> DKW_alpha_fromMain
 }
 
 #pragma endregion

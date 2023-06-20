@@ -13,4 +13,5 @@ UCLASS()
 class BLACKBIN_API UD_OnGameWidget : public UUserWidget
 {
 	GENERATED_BODY()
+>>>>>>> DKW_alpha_fromMain
 };
