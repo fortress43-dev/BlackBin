@@ -68,7 +68,7 @@ void AH_EnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
     //GetWorldTimerManager().SetTimer(TimerHandle, this, &AH_EnemyCharacter::TimerEvent, 3.0f, true);
-    
+   
 }
 //void AH_EnemyCharacter::TimerEvent()
 //{
@@ -83,7 +83,7 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
     dt = DeltaTime;
     ct += DeltaTime;
     ct2 += DeltaTime;
-    if (MoveState != EBossMovingState::Dash) {
+    if (MoveState != EBossMovingState::Dash && MoveState != EBossMovingState::SAttack) {
         StateTimer += DeltaTime;
         
     }
@@ -100,8 +100,8 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
     // 적과 나의 방향과 거리를 알고싶다.
     if (PlayerCharacter)
     {
-        FVector enemyLocation = GetActorLocation();
-        FVector playerLocation = PlayerCharacter->GetActorLocation();
+		FVector enemyLocation = GetActorLocation();
+		FVector playerLocation = PlayerCharacter->GetActorLocation();
         distance = FVector::Distance(enemyLocation, playerLocation);
 
         FVector Direction = (playerLocation - enemyLocation).GetSafeNormal();
@@ -335,12 +335,10 @@ void AH_EnemyCharacter::SAttack(){
 
     SAttackMongtage();
     SpawnHitBox();
-
-    if (ct2 > 6.f) {
+    if (ct2 > 4) {
         Checking();
-		ct2 = 0;
-		ct = 0;
     }
+    //CheckSAttack();
 }
 
 void AH_EnemyCharacter::BackMove()
@@ -349,7 +347,33 @@ void AH_EnemyCharacter::BackMove()
     if (nullptr == AnimInstance) return;
 
     AnimInstance->PlayBackmoveMontage();
-    
+    CheckJump();
+    //점프 몽타주를 하고있는지 상태를 알고싶다
+    //만약 몽타주가 끝나면 스테이트를 바꾸고 싶다
+    //만약 몽타주가 끝나지 않았다면 끝날때까지 지금 스테이트를 유지하고 싶다
+}
+void AH_EnemyCharacter::CheckJump() {
+    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
+    isJumping = AnimInstance->IsAnyMontagePlaying();
+    //만약 몽타주가 끝나면 스테이트를 바꾸고 싶다
+    if (isJumping == false) {
+
+        Checking();
+        
+    }
+
+}
+
+void AH_EnemyCharacter::CheckSAttack()
+{
+    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
+    animFinished = AnimInstance->IsAnyMontagePlaying();
+    //만약 몽타주가 끝나면 스테이트를 바꾸고 싶다
+    if (animFinished == false) {
+
+        Checking();
+
+    }
 }
 
 void AH_EnemyCharacter::Checking()
@@ -381,7 +405,7 @@ void AH_EnemyCharacter::Checking()
         else if (distance < 200) {
         // if (animationFinished) {
         arrayState = { EBossMovingState::MovingBackward, EBossMovingState::Attacking, EBossMovingState::BackStep, EBossMovingState::Staying };
-        arrayWeight = { 0.4f, 0.8f, 0.3f, 0.3f };
+        arrayWeight = { 0.4f, 0.8f, 1.6f, 0.3f };
 
         MoveState = GetArrayWeight(arrayState, arrayWeight);
        
@@ -389,16 +413,7 @@ void AH_EnemyCharacter::Checking()
         // }
         }
         
-        //ChangeState(MoveState);
-
-        // 애니메이션 재생을 시작하기 전에 다음 애니메이션 몽타주를 미리 설정
-        //CurrentMontage = Cast<UAnimMontage>(GetAnimationMontage(MoveState));
-        //if (CurrentMontage)
-        //{
-        //    // 애니메이션 재생
-        //    PlayAnimMontage(CurrentMontage);
-        //}
-        //animationFinished = false;
+       
         printf("%d", MoveState);
         ct2 = 0;
         ct = 0;
@@ -550,14 +565,6 @@ void AH_EnemyCharacter::IdleAnim()
 
 }
 
-//조건을 피격시 50퍼센트로 바꿀거임
-    // 뒤로 이동하는 상태가 아니고, 거리가 400 이하면 
-    /*if (bState != EBossState::MoveBack && distance < 400)
-    {
-        // 뒤로 300 정도 이동하는 상태로 전환하고 싶다.
-        //GetActorLocation() + dir * dashSpeed * dt * -1;
-        bState = EBossState::MoveBack;
-    }*/
 
 void AH_EnemyCharacter::Hit(float value) {
     Super::Hit(value);
@@ -569,88 +576,3 @@ void AH_EnemyCharacter::Hit(float value) {
     else printf("RanN : %d", randomN);
 }
 
-//void AH_EnemyCharacter::ChangeState(EBossMovingState NewState) 
-//{
-//    MoveState = NewState;
-//
-//    switch (MoveState)
-//    {
-//    case EBossMovingState::Dash:
-//        Dash();
-//        break;
-//    case EBossMovingState::MovingBackward:
-//        MovingBackward();
-//        break;
-//    case EBossMovingState::MovingForward:
-//        MovingForward();
-//        break;
-//    case EBossMovingState::MovingLeft:
-//        MovingLeft();
-//        break;
-//    case EBossMovingState::MovingRight:
-//        MovingRight();
-//        break;
-//    case EBossMovingState::Staying:
-//        Staying();
-//        break;
-//    case EBossMovingState::Attacking:
-//        Attacking();
-//        break;
-//    case EBossMovingState::BackStep:
-//        BackStep();
-//        break;
-//    default:
-//        break;
-//    }
-//}
-//
-//UAnimInstance* AH_EnemyCharacter::GetAnimationInstance()
-//{
-//    if (MeshComponent)
-//    {
-//        return MeshComponent->GetAnimInstance();
-//    }
-//    return nullptr;
-//}
-//
-//
-//UAnimInstance* AH_EnemyCharacter::GetAnimationMontage(EBossMovingState State)
-//{
-//    UAnimInstance* AnimInstance = nullptr;
-//
-//    // MoveState에 따라 애니메이션 인스턴스를 설정
-//    switch (MoveState)
-//    {
-//        case EBossMovingState::Dash:
-//            AnimInstance = GetAnimationInstance();
-//            break;
-//        case EBossMovingState::MovingForward:
-//            AnimInstance = GetAnimationInstance();
-//            break;
-//        case EBossMovingState::MovingBackward:
-//            AnimInstance = GetAnimationInstance();
-//            break;
-//        case EBossMovingState::MovingLeft:
-//            AnimInstance = GetAnimationInstance();
-//            break;
-//        case EBossMovingState::MovingRight:
-//            AnimInstance = GetAnimationInstance();
-//            break;
-//        case EBossMovingState::Staying:
-//            AnimInstance = GetAnimationInstance();
-//            break;
-//        case EBossMovingState::Attacking:
-//            AnimInstance = GetAnimationInstance();
-//            break;
-//        case EBossMovingState::BackStep:
-//            AnimInstance = GetAnimationInstance();
-//            break;
-//    }
-//
-//    return AnimInstance;
-//}
-
-//void AH_EnemyCharacter::AnimEnded(UAnimMontage* Montage, bool bInterrupted)
-//{
-//
-//}
