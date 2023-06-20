@@ -101,6 +101,8 @@ public:
     void ForwardMoveAnim();
     void BackwardMoveAnim();
     void IdleAnim();
+    void CheckJump();
+    void CheckSAttack();
     //void ChangeState(EBossMovingState NewState);
     //void TimerEvent();
     //UAnimInstance* GetAnimationInstance();
@@ -135,10 +137,10 @@ private:
     int randomN;
     int ranTime;
     float StateTimer;
-    bool animationFinished = false;
+    bool animFinished = false;
     FTimerHandle TimerHandle;
     UAnimMontage* CurrentMontage;
-    
+    bool isJumping = false;
 };
 
 
