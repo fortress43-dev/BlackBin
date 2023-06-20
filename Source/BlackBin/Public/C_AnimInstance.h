@@ -33,6 +33,8 @@ class BLACKBIN_API UC_AnimInstance : public UAnimInstance
 		FOnPowerAttackHitCheckDelegate		OnPowerAttackHitCheck;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 			bool IsBarrier;
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
+			bool IsArrow;
 	private:
 		UFUNCTION()
 		void AnimNotify_NextAttackCheck();

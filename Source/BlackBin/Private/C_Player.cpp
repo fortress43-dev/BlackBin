@@ -96,18 +96,13 @@ void AC_Player::PostInitializeComponents()
 			if (NiagaraComponent->GetName() == "Trailer")
 			{
 				Trail = NiagaraComponent;
-				UE_LOG(LogTemp, Warning, TEXT("%s"), *NiagaraComponent->GetName());
-				break;
+				//UE_LOG(LogTemp, Warning, TEXT("%s"), *NiagaraComponent->GetName());
+			}
+			if (NiagaraComponent->GetName() == "Charge")
+			{
+				Charging = NiagaraComponent;
 			}
 		}
-	}
-	if (Trail)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ASDASDAS"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("FALL"));
 	}
 	AnimIns = Cast<UC_AnimInstance>(GetMesh()->GetAnimInstance());
 	AnimIns->OnMontageEnded.AddDynamic(this, &AC_Player::OnAnimeMontageEnded);
@@ -157,6 +152,7 @@ void AC_Player::PostInitializeComponents()
 			Hitbox->slowmotion = .3;
 			Hitbox->dmg = 8 * (1 + gagePower / 30);
 		}
+		gagePower = 0;
 		Hitbox->SetActorScale3D(FVector(1 + gagePower / 50));
 		Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
 		});
@@ -494,22 +490,19 @@ void AC_Player::Roll()
 
 void AC_Player::ArrowStart()
 {
-	if (Controller != nullptr && State == PLAYERSTATE::MOVEMENT)
+	if (Controller != nullptr)
 	{
 		zoomTarget = 200.0f;
 		FollowCamera->SetRelativeLocation(FVector(0.f, 100.f, 0.f));
-		State = PLAYERSTATE::ARROW;
-		GetCharacterMovement()->Velocity.X = 0;
-		GetCharacterMovement()->Velocity.Y = 0;
+
 	}
 }
 void AC_Player::ArrowEnd()
 {
-	if (Controller != nullptr && State == PLAYERSTATE::ARROW)
+	if (Controller != nullptr)
 	{
 		zoomTarget = 400.0f;
 		FollowCamera->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
-		Statestep = 100;
 	}
 }
 
@@ -778,6 +771,16 @@ void AC_Player::StatePowerCharging()
 		SetActorRotation(SetRot);
 	}
 	gagePower = FMath::Clamp(gagePower + .5, 0, 100);
+	if (gagePower == 100 && Statestep == 0)
+	{
+		print("ASDASDASDASDAS");
+		if (Charging)
+		{
+			Charging->Activate();
+			Charging->Deactivate();
+		}
+		Statestep = 1;
+	}
 }
 void AC_Player::StateReset()
 {

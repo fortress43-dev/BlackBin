@@ -103,8 +103,11 @@ class BLACKBIN_API AC_Player : public AC_Mob
 public:
 	AC_Player();
 
+
 	UPROPERTY()
 	class UNiagaraComponent* Trail;
+	UPROPERTY()
+	class UNiagaraComponent* Charging;
 	PLAYERSTATE	State	= PLAYERSTATE::MOVEMENT;
 	UPROPERTY()
 	float	StateTimer	= 0;

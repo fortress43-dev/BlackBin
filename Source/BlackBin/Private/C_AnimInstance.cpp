@@ -32,6 +32,7 @@ void UC_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			FVector Acc = CharacterMovement->GetCurrentAcceleration();
 			ShouldMove = (Acc != FVector(0) && MovementSpeed > 3);
 			Host = Character;
+			IsArrow = bool(Character->gageArrow);
 		}
 	}
 }
