@@ -80,6 +80,7 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+
     dt = DeltaTime;
     ct += DeltaTime;
     ct2 += DeltaTime;
@@ -208,13 +209,17 @@ void AH_EnemyCharacter::MovingForward()
 
 void AH_EnemyCharacter::MovingRight()
 {
+    float thetaToRadian = FMath::DegreesToRadians(60);
+    float y = FMath::Sin(thetaToRadian);
+    float x = FMath::Cos(thetaToRadian);
+    FVector target(x, y, 0);
+    FVector direc = target - GetActorLocation();
     RightMoveAnim();
+    
 // 오른쪽으로 이동하는 로직 구현
-    dir = PlayerLoc - EnemyLoc;
-    dir.Normalize();
     SetActorRotation(EnemyRot);
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
-    AddMovementInput(dir * FVector::RightVector);
+    AddMovementInput(direc);
     GetCharacterMovement()->MaxWalkSpeed = 150;
 
   
@@ -224,13 +229,17 @@ void AH_EnemyCharacter::MovingRight()
 
 void AH_EnemyCharacter::MovingLeft()
 {
+
+    float thetaToRadian = FMath::DegreesToRadians(300);
+    float y = FMath::Sin(thetaToRadian);
+    float x = FMath::Cos(thetaToRadian);
+    FVector target(x, y, 0);
+    FVector direc = target - GetActorLocation();
     LeftMoveAnim();
    
-    dir = PlayerLoc - EnemyLoc;
-    dir.Normalize();
     SetActorRotation(EnemyRot);
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
-    AddMovementInput(dir * FVector::LeftVector);
+    AddMovementInput(direc);
     GetCharacterMovement()->MaxWalkSpeed = 150;
 
 	
@@ -256,28 +265,29 @@ void AH_EnemyCharacter::Staying()
 
 void AH_EnemyCharacter::Attacking()
 {
-    int RandAttack = FMath::RandRange(1, 100);
+    //int RandAttack = FMath::RandRange(1, 100);
     if (distance < 300) {
-        //if (animationFinished) {
             GetCharacterMovement()->MaxWalkSpeed = 0;
             //if (RandAttack > 67) {
-                //printf("&d", RandAttack);
+               // printf("&d", RandAttack);
                 FirstBasicAttack();
             //}
 
-            //else if (RandAttack <= 67, RandAttack > 33) {
-            //    printf("&d", RandAttack);
-            //    SecondBasicAttack();
-            //}
-            //else {
-            //    printf("&d", RandAttack);
-            //    ThirdBasicAttack();
-            //}
+			/*else if (RandAttack <= 67, RandAttack > 33) {
+				printf("&d", RandAttack);
+			   SecondBasicAttack();
+			}
+			else {
+				printf("&d", RandAttack);
+				ThirdBasicAttack();
+			}*/
             
-        //}
-        
         SpawnHitBox();
+        
     }
+    else {
+        Checking();
+	}
 	
     
 }
@@ -304,7 +314,7 @@ void AH_EnemyCharacter::Dash()
         AddMovementInput(dir);
 
     }
-    else if(distance < 201) {
+    else if(distance <= 200) {
         MoveState = EBossMovingState::SAttack;
 
     }
@@ -324,9 +334,8 @@ void AH_EnemyCharacter::BackStep()
         SetActorRotation(EnemyRot);
         GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking); // 또는 이동 모드에 맞는 다른 모드를 선택합니다.
         AddMovementInput(dir * -1);
-        GetCharacterMovement()->MaxWalkSpeed = 1500;
+        GetCharacterMovement()->MaxWalkSpeed = 1800;
     }
-
 }
 
 void AH_EnemyCharacter::SAttack(){
@@ -334,10 +343,12 @@ void AH_EnemyCharacter::SAttack(){
     ct2 += dt;
 
     SAttackMongtage();
+    //CheckJump();
     SpawnHitBox();
-    if (ct2 > 4) {
-        Checking();
-    }
+	if (ct2 > 4) {
+		Checking();
+	}
+    
     //CheckSAttack();
 }
 
@@ -352,7 +363,10 @@ void AH_EnemyCharacter::BackMove()
     //만약 몽타주가 끝나면 스테이트를 바꾸고 싶다
     //만약 몽타주가 끝나지 않았다면 끝날때까지 지금 스테이트를 유지하고 싶다
 }
+
 void AH_EnemyCharacter::CheckJump() {
+
+    UE_LOG(LogTemp, Warning, TEXT("adsfasdfadsf"));
     auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
     isJumping = AnimInstance->IsAnyMontagePlaying();
     //만약 몽타주가 끝나면 스테이트를 바꾸고 싶다
@@ -393,19 +407,19 @@ void AH_EnemyCharacter::Checking()
             
         //}
         }
-        else if (distance < 900 && distance > 200) {
+        else if (distance <= 900 && distance > 300) {
        // if (animationFinished) {
-            arrayState = { EBossMovingState::MovingBackward, EBossMovingState::MovingForward, EBossMovingState::MovingLeft,EBossMovingState::MovingRight, EBossMovingState::Staying};
-            arrayWeight = { 0.4f, 0.6f, 0.6f, 0.6f, 0.4f};
+            arrayState = { EBossMovingState::MovingBackward, EBossMovingState::MovingForward, EBossMovingState::MovingLeft,EBossMovingState::MovingRight, EBossMovingState::Staying,EBossMovingState::Dash };
+            arrayWeight = { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.4f};
 
             MoveState = GetArrayWeight(arrayState, arrayWeight);
 
        // }
         }
-        else if (distance < 200) {
+        else if (distance <= 300) {
         // if (animationFinished) {
         arrayState = { EBossMovingState::MovingBackward, EBossMovingState::Attacking, EBossMovingState::BackStep, EBossMovingState::Staying };
-        arrayWeight = { 0.4f, 0.8f, 1.6f, 0.3f };
+        arrayWeight = { 0.1f, 0.8f, 0.2f, 0.1f };
 
         MoveState = GetArrayWeight(arrayState, arrayWeight);
        
@@ -568,11 +582,6 @@ void AH_EnemyCharacter::IdleAnim()
 
 void AH_EnemyCharacter::Hit(float value) {
     Super::Hit(value);
-    if (randomN < NumberPercentage) {
-         //1 ~ 100 random number
-        printf("RanN : %d",randomN);
-     
-    }
-    else printf("RanN : %d", randomN);
+    
 }
 

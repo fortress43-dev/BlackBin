@@ -55,6 +55,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float bossIsClose = 200;
 
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float moveSpeed; // Movement speed
 
@@ -141,6 +142,9 @@ private:
     FTimerHandle TimerHandle;
     UAnimMontage* CurrentMontage;
     bool isJumping = false;
+
+    
+
 };
 
 
