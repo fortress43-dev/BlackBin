@@ -49,6 +49,8 @@ public:
 	UPROPERTY()
 	class UD_OnGameWidget* onGameWidget = nullptr;
 	
+	UPROPERTY(EditAnywhere, Category = "MediaPlayers")
+	class UMediaPlayer* openingMediaPlayer;
 	
 
 #pragma endregion

@@ -7,6 +7,7 @@
 #include "MainMenuWidget.h"
 #include "DebugMessages.h"
 #include <UMG/Public/Components/CanvasPanel.h>
+#include <MediaAssets/Public/MediaPlayer.h>
 
 
 // <UI 표시조건>
@@ -46,6 +47,9 @@ AD_GameManager::AD_GameManager()
 	if (tmpOnGameWidget.Succeeded()) {
 		onGameWidgetSource = tmpOnGameWidget.Class;
 	}
+
+	ConstructorHelpers::FObjectFinder<UMediaPlayer> tmpMediaPlayer(TEXT(""));
+	if(tmpMediaPlayer)
 
 #pragma endregion
 	
