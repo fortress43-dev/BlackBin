@@ -58,7 +58,7 @@ void AC_HitBox::NotifyActorBeginOverlap(AActor* OtherActor)
 			if (MobActor->team != team)
 			{
 				printf("HIT : %d", dmg);
-<<<<<<< HEAD
+
 				MobActor->Hit(this, float(dmg));
 				FVector randVec = FVector(FMath::RandRange(-50, 50), FMath::RandRange(-50, 50), FMath::RandRange(-50, 50));
 				if (Fx)
