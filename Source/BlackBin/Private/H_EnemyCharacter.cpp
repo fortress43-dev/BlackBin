@@ -29,7 +29,9 @@ AH_EnemyCharacter::AH_EnemyCharacter()
     }
 
     // Set size for collision capsule
-    GetCapsuleComponent()->InitCapsuleSize(42.0f, 96.0f);
+    compCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
+    RootComponent = compCapsule;
+    //GetCapsuleComponent()->InitCapsuleSize(42.0f, 96.0f);
 
     // Create mesh component and attach it to the root component
     
@@ -84,7 +86,7 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
     dt = DeltaTime;
     ct += DeltaTime;
     ct2 += DeltaTime;
-    if (MoveState != EBossMovingState::Dash && MoveState != EBossMovingState::SAttack) {
+    if (MoveState != EBossMovingState::Dash && MoveState != EBossMovingState::Dying) {
         StateTimer += DeltaTime;
         
     }
@@ -146,6 +148,12 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
         case EBossMovingState::Attacking:
             Attacking();
             break;
+        case EBossMovingState::BasicOneAttack:
+            BasicOneAttack();
+            break;
+        case EBossMovingState::BasicTwoAttack:
+            BasicTwoAttack();
+            break;
         case EBossMovingState::BackStep:
             BackStep();
             break;
@@ -154,6 +162,9 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
             break;
         case EBossMovingState::Idle:
             Idle();
+            break;
+        case EBossMovingState::Dying:
+            Dying();
             break;
         default:
             break;
@@ -170,6 +181,21 @@ void AH_EnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 }
 
 
+
+void AH_EnemyCharacter::Dying()
+{
+    ct3 += dt;
+    GetCharacterMovement()->MaxWalkSpeed = 0;
+    Hit(float(Hitbox->dmg));
+    DyingMotion();
+
+    
+    SetActorRotation(FRotator(0.0f, 90.0f, 0.0f));
+    
+    if (ct3 > 10) {
+        Destroy();
+    }
+}
 
 void AH_EnemyCharacter::Idle()
 {
@@ -352,6 +378,37 @@ void AH_EnemyCharacter::SAttack(){
     //CheckSAttack();
 }
 
+void AH_EnemyCharacter::BasicOneAttack()
+{
+    if (distance < 300) {
+        GetCharacterMovement()->MaxWalkSpeed = 0;
+       
+        SecondBasicAttack();
+        SpawnHitBox();
+
+    }
+    else {
+        Checking();
+    }
+
+
+}
+
+void AH_EnemyCharacter::BasicTwoAttack()
+{
+    if (distance < 300) {
+        GetCharacterMovement()->MaxWalkSpeed = 0;
+        ThirdBasicAttack();
+        SpawnHitBox();
+
+    }
+    else {
+        Checking();
+    }
+
+
+}
+
 void AH_EnemyCharacter::BackMove()
 {
     auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
@@ -390,6 +447,14 @@ void AH_EnemyCharacter::CheckSAttack()
     }
 }
 
+void AH_EnemyCharacter::DyingMotion()
+{
+    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
+    if (nullptr == AnimInstance) return;
+
+    AnimInstance->PlayDyingMongtage();
+}
+
 void AH_EnemyCharacter::Checking()
 {
     //if (GetMesh()->GetAnimInstance()->Montage_IsPlaying(CurrentMontage))
@@ -418,8 +483,8 @@ void AH_EnemyCharacter::Checking()
         }
         else if (distance <= 300) {
         // if (animationFinished) {
-        arrayState = { EBossMovingState::MovingBackward, EBossMovingState::Attacking, EBossMovingState::BackStep, EBossMovingState::Staying };
-        arrayWeight = { 0.1f, 0.8f, 0.2f, 0.1f };
+        arrayState = { EBossMovingState::MovingBackward, EBossMovingState::Attacking, EBossMovingState::BasicOneAttack, EBossMovingState::BasicTwoAttack, EBossMovingState::BackStep, EBossMovingState::Staying };
+        arrayWeight = { 0.1f, 0.4f, 0.4f, 0.4f, 0.1f, 0.1f };
 
         MoveState = GetArrayWeight(arrayState, arrayWeight);
        
@@ -482,7 +547,7 @@ void AH_EnemyCharacter::SpawnHitBox()
         //히트박스를 소환한다
 
         SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-        AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
+        Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
         
         //만약 히트박스가 소환됬다면
         if (Hitbox)
@@ -581,7 +646,15 @@ void AH_EnemyCharacter::IdleAnim()
 
 
 void AH_EnemyCharacter::Hit(float value) {
-    Super::Hit(value);
+    
+    hp -= value;
+    Hitbox->dmg = 10;
+    if (hp <= 0) {
+        
+        MoveState = EBossMovingState::Dying;
+        compCapsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    }
     
 }
 
