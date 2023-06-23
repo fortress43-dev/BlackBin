@@ -72,6 +72,7 @@ public:
 	void ShowGuideText(EGuideText);
 	void SetBattlePanelVisibility(bool);
 
+	void HideStoryWidget();
 #pragma endregion
 
 

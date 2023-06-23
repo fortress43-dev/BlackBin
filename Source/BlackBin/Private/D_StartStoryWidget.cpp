@@ -10,7 +10,7 @@
 	
 	 Super::NativeConstruct();
 
-	 StartCinamaPlayer->OnMouseButtonDownEvent.BindUFunction(this, FName("OnClickScreen"));
+	 StartCinemaPlayer->OnMouseButtonDownEvent.BindUFunction(this, FName("OnClickScreen"));
 
 	 
 }
@@ -18,5 +18,7 @@
  void UD_StartStoryWidget::OnClickScreen() {
 	// 영상플레이 도중 화면을 클릭하면 플레이어를 끈다
 	RemoveFromParent();
+	// 플레이어 카메라를 시작장면으로 세팅한다
+
  }
 

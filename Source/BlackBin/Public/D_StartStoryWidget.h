@@ -18,7 +18,7 @@ public:
 
 #pragma region Borders
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	class UImage* StartCinamaPlayer;
+	class UImage* StartCinemaPlayer;
 	
 #pragma endregion
 
