@@ -110,8 +110,6 @@ public:
     void ForwardMoveAnim();
     void BackwardMoveAnim();
     void IdleAnim();
-    void CheckJump();
-    void CheckSAttack();
     void DyingMotion();
     //void ChangeState(EBossMovingState NewState);
     //void TimerEvent();
@@ -123,6 +121,7 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
     class UStaticMeshComponent* meshComp;
 
+    class UH_AnimInst* AnimInstance;
     //나중에 백스텝 한번에 할떄 쓰기
     /*UFUNCTION()
     void AnimEnded(UAnimMontage* Montage, bool bInterrupted);
@@ -158,6 +157,8 @@ private:
     bool isAttackingThree = false;
     bool isAttackingStrong = false;
 
+    UFUNCTION()
+		void OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 };
 
 
