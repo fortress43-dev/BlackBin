@@ -84,6 +84,8 @@ void AD_GameManager::BeginPlay()
 void AD_GameManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	/*startStoryWidget->StartCinamaPlayer.*/
 }
 
 #pragma region Show Widgets

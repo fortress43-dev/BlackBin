@@ -18,21 +18,8 @@ public:
 
 #pragma region Borders
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	class UBorder* borderStoryText;
+	class UImage* StartCinamaPlayer;
 
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	class UBorder* borderCinematic;
-
-	UPROPERTY(EditAnywhere)
-	TArray<UBorder*> playList;
-		/*=
-		{ borderStoryText ,
-		  borderCinematic ,
-		};*/
-
-	// playerIndex
-	UPROPERTY()
-	int idx = 0;
 #pragma endregion
 
 #pragma region Functions
