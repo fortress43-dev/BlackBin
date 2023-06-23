@@ -81,7 +81,6 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
     USkeletalMeshComponent* MeshComponent;
 
-    class UCapsuleComponent* compCapsule;
    
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = STATE)
         EBossMovingState MoveState = EBossMovingState::Idle;
@@ -154,7 +153,10 @@ private:
     UAnimMontage* CurrentMontage;
     bool isJumping = false;
 
-    
+    bool isAttackingOne = false;
+    bool isAttackingTwo = false;
+    bool isAttackingThree = false;
+    bool isAttackingStrong = false;
 
 };
 
