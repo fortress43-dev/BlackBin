@@ -47,7 +47,7 @@ AC_Player::AC_Player()
 	{
 		HitBoxClass = (UClass*)HitBoxObject.Object->GeneratedClass;
 	}
-	\
+	
 	static ConstructorHelpers::FObjectFinder<UBlueprint> ArrowObject(TEXT("/Script/Engine.Blueprint'/Game/CSK/Blueprints/BP_Arrow.BP_Arrow'"));
 	if (ArrowObject.Object)
 	{
@@ -83,10 +83,7 @@ AC_Player::AC_Player()
 void AC_Player::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-
-	HitBoxClass = AC_HitBox::StaticClass();
-	ArrowClass = AC_Arrow::StaticClass();
-
+#pragma region//나이아가라 컴포넌트 할당
 	TArray<UActorComponent*> Components;
 	GetComponents(Components);
 	for (UActorComponent* Component : Components)
@@ -104,37 +101,21 @@ void AC_Player::PostInitializeComponents()
 			}
 		}
 	}
+#pragma endregion
 	AnimIns = Cast<UC_AnimInstance>(GetMesh()->GetAnimInstance());
 	AnimIns->OnMontageEnded.AddDynamic(this, &AC_Player::OnAnimeMontageEnded);
-
-	AnimIns->OnNextAttackCheck.AddLambda([this]() -> void {
-		if (IsCheckCombo == true)
-		AnimIns->Montage_JumpToSection(FName(*FString::Printf(TEXT("Attack%d"), attackIndex + 1)), AttackMontage);
-		IsCheckCombo = false;
-		attackIndex = (attackIndex + 1) % 4;
-		Statestep = 0;
-		StateTimer = 0;
-	});
-
-	AnimIns->OnAttackHitCheck.AddLambda([this]() -> void {
-
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		FRotator rotator = GetActorRotation();
-		FVector  SpawnLocation = GetActorLocation();
-		FVector	 addLoc = GetActorForwardVector() * 100;
-		SpawnLocation.Z -= 50.f;
-
-		AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
-		if (Hitbox)
+#pragma region//노티파이 - 다음 어택 지속 체크
+	AnimIns->OnNextAttackCheck.AddLambda([this]() -> void
 		{
-			Hitbox->dmg = 10;
-			Hitbox->lifeTime = 3;
-			Hitbox->slowmotion = .8;
-			Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
-		}
-	});
+			if (IsCheckCombo == true)
+				AnimIns->Montage_JumpToSection(FName(*FString::Printf(TEXT("Attack%d"), attackIndex + 1)), AttackMontage);
+			IsCheckCombo = false;
+			attackIndex = (attackIndex + 1) % 4;
+			Statestep = 0;
+			StateTimer = 0;
+		});
+#pragma endregion
+#pragma region//노티파이 - 히트박스 생성(강 공격)
 	AnimIns->OnPowerAttackHitCheck.AddLambda([this]() -> void {
 
 		FActorSpawnParameters SpawnParams;
@@ -152,23 +133,56 @@ void AC_Player::PostInitializeComponents()
 			Hitbox->slowmotion = .3;
 			Hitbox->dmg = 8 * (1 + gagePower / 30);
 		}
-		gagePower = 0;
 		Hitbox->SetActorScale3D(FVector(1 + gagePower / 50));
 		Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
 		});
-	AnimIns->OnCancelable.AddLambda([this]() -> void {
+#pragma endregion
+#pragma region//노티파이 - 히트박스 생성(일반공격)
+	AnimIns->OnAttackHitCheck.AddLambda([this]() -> void
+		{
+			FRotator SetRot = GetActorRotation();
+			StateDirectionX = FRotationMatrix(SetRot).GetUnitAxis(EAxis::X);
+			StateDirectionY = FRotationMatrix(SetRot).GetUnitAxis(EAxis::Y);
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			FRotator rotator = GetActorRotation();
+			FVector  SpawnLocation = GetActorLocation();
+			FVector	 addLoc = GetActorForwardVector() * 100;
+			SpawnLocation.Z -= 50.f;
 
+			AC_HitBox* Hitbox = GetWorld()->SpawnActor<AC_HitBox>(HitBoxClass, SpawnLocation + addLoc, rotator, SpawnParams);
+			if (Hitbox)
+			{
+				Hitbox->dmg = 10;
+				Hitbox->lifeTime = 3;
+				Hitbox->slowmotion = .8;
+				Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
+			}
+		});
+#pragma endregion
+#pragma region //노티파이 - 캔슬 가능으로 전환
+	AnimIns->OnCancelable.AddLambda([this]() -> void
+	{
 		bCancelable = true;
 	});
-
-	AnimIns->OnDoRotation.AddLambda([this]() -> void {
-
+#pragma endregion
+#pragma region //노티파이 - 회전 가능으로 전환
+	AnimIns->OnDoRotation.AddLambda([this]() -> void
+	{
 		IsRotation = true;
 	});
+#pragma endregion
+
 }
 
 void AC_Player::OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
+	if (IsDoState)
+	{
+		IsDoState = false;
+		return;
+	}
 	if (Montage == AttackMontage)
 	{
 		if (!DoCombo)
@@ -188,23 +202,27 @@ void AC_Player::OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 		if (!bInterrupted)
 		{
 			StateReset();
+			IsRotation = true;
+			GetCharacterMovement()->Velocity.X = 0;
+			GetCharacterMovement()->Velocity.Y = 0;
+			GetCharacterMovement()->RotationRate = FRotator(0.0f, 700.0f, 0.0f);;
 		}
-		IsRotation							= true;
-		GetCharacterMovement()->Velocity.X = 0;
-		GetCharacterMovement()->Velocity.Y = 0;
-		GetCharacterMovement()->RotationRate = FRotator(0.0f, 700.0f, 0.0f);
 	}
 	else if (Montage == PowerAttackChargingMontage)
 	{
-		if (!DoCombo)
+		if (State != PLAYERSTATE::POWERCHARGING)
 		{
-			if (!bInterrupted)//정상 종료
-			{
-				StateReset();
-			}
+			gagePower = 0;
+			StateReset();
 		}
-		Trail->Deactivate();
 	}
+	else if (Montage == KnockBackMontage)
+	{
+		StateReset();
+	}
+	AnimIns->IsKnockBack = false;
+	Trail->Deactivate();
+
 }
 void AC_Player::BeginPlay()
 {
@@ -246,6 +264,9 @@ void AC_Player::Tick(float DeltaTime)
 			break;
 			case PLAYERSTATE::BARRIER:
 				StateBarrier();
+			break;
+			case PLAYERSTATE::KNOCKBACK:
+				StateKnockBack();
 			break;
 		}
 		if (Statestep == 100)
@@ -309,7 +330,7 @@ void AC_Player::SetupPlayerInputComponent(class UInputComponent* PlayerInputComp
 }
 void AC_Player::Jump()
 {
-	if(State == PLAYERSTATE::MOVEMENT)
+	if((State == PLAYERSTATE::MOVEMENT))
 			Super::Jump();
 }
 void AC_Player::Move(const FInputActionValue& Value)
@@ -388,7 +409,7 @@ void AC_Player::Attack()
 		{
 			IsCheckCombo = true;
 		}
-		if (State == PLAYERSTATE::MOVEMENT || bCancelable)
+		if (State == PLAYERSTATE::MOVEMENT)
 		{
 			//============================================================
 			if (!(AnimIns->Montage_IsPlaying(AttackMontage)))
@@ -508,8 +529,14 @@ void AC_Player::ArrowEnd()
 
 void AC_Player::PowerAttackStart()
 {
-	if (Controller != nullptr && (State == PLAYERSTATE::MOVEMENT || bCancelable))
+	if (Controller != nullptr && (State == PLAYERSTATE::MOVEMENT))
 	{
+		StateReset();
+		if (AnimIns->Montage_IsPlaying(AnimIns->GetCurrentActiveMontage()))
+		{
+			IsDoState = true;
+			AnimIns->Montage_Stop(0, GetCurrentMontage());
+		}
 		State = PLAYERSTATE::POWERCHARGING;
 		Statestep = 0;
 		StateTimer = 0;
@@ -520,14 +547,16 @@ void AC_Player::PowerAttackStart()
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 		RotationTarget = YawRotation;
 
+
 		StateVector = FVector2D(0);
-		AnimIns->Montage_Play(PowerAttackMontage, 0, EMontagePlayReturnType::MontageLength, .5f);
+		AnimIns->Montage_Play(PowerAttackMontage, 0, EMontagePlayReturnType::MontageLength);
 	}
 }
 void AC_Player::PowerAttackEnd()
 {
 	if (Controller != nullptr && State == PLAYERSTATE::POWERCHARGING)
 	{
+		AnimIns->Montage_Stop(1, AnimIns->GetCurrentActiveMontage());
 		State = PLAYERSTATE::POWERATTACK;
 		StateTimer = 0;
 		Statestep = 0;
@@ -556,7 +585,7 @@ void AC_Player::PowerAttackEnd()
 		StateVector = FVector2D(0, 0);
 		Statestep = 0;
 		StateTimer = 0;
-		AnimIns->Montage_Play(PowerAttackMontage, 1, EMontagePlayReturnType::MontageLength, .5f);
+		AnimIns->Montage_Play(PowerAttackMontage, 1, EMontagePlayReturnType::MontageLength);
 	}
 }
 
@@ -635,16 +664,6 @@ void AC_Player::StateAttack()
 		}
 		SetActorRotation(SetRot);
 	}
-	if (Statestep == 0)
-	{
-		GetCharacterMovement()->Velocity.X = SetRot.Vector().X * 500;
-		GetCharacterMovement()->Velocity.Y = SetRot.Vector().Y * 500;
-		StateDirectionX = FRotationMatrix(SetRot).GetUnitAxis(EAxis::X);
-		StateDirectionY = FRotationMatrix(SetRot).GetUnitAxis(EAxis::Y);
-
-		Statestep = 1;
-		StateTimer = 0;
-	}
 }
 
 void AC_Player::StatePowerAttack()
@@ -719,6 +738,10 @@ void AC_Player::StateBarrier()
 			}
 			SetActorRotation(SetRot);
 	}
+	if (Barrier)
+	{
+		Barrier->SetActorLocation(GetActorLocation());
+	}
 }
 void AC_Player::StateArrow()
 {
@@ -770,16 +793,34 @@ void AC_Player::StatePowerCharging()
 		}
 		SetActorRotation(SetRot);
 	}
-	gagePower = FMath::Clamp(gagePower + .5, 0, 100);
+	gagePower = FMath::Clamp(gagePower + 1, 0, 100);
 	if (gagePower == 100 && Statestep == 0)
 	{
-		print("ASDASDASDASDAS");
 		if (Charging)
 		{
-			Charging->Activate();
-			Charging->Deactivate();
+			Charging->ActivateSystem();
+			Charging->ResetSystem();
 		}
 		Statestep = 1;
+	}
+}
+void AC_Player::StateKnockBack()
+{
+	print("HIT");
+	if (GetCharacterMovement()->Velocity.Z == 0)
+	{
+		if (Statestep == 0)
+		{
+			AnimIns->Montage_Play(KnockBackMontage);
+			Statestep = 1;
+			StateTimer = 0;
+			if (AnimIns->IsKnockBack == -1)
+			{
+				AnimIns->Montage_JumpToSection(FName(*FString::Printf(TEXT("Hit2"))), KnockBackMontage);
+			}
+			AnimIns->IsKnockBack = 0;
+		}
+
 	}
 }
 void AC_Player::StateReset()
@@ -792,7 +833,7 @@ void AC_Player::StateReset()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 }
 
-void AC_Player::Hit(float value)
+void AC_Player::Hit(AC_HitBox* box, float value)
 {
 	if (Barrier != nullptr)
 	{
@@ -800,7 +841,40 @@ void AC_Player::Hit(float value)
 		value = FMath::Max(value - BarrierShield, 0);
 	}
 	if (value > 0)
-	{ 
-		Super::Hit(value);
+	{
+		Super::Hit(box, value);
+		StateReset();
+		if (AnimIns->Montage_IsPlaying(AnimIns->GetCurrentActiveMontage()))
+		{
+			IsDoState = true;
+			AnimIns->Montage_Stop(0, GetCurrentMontage());
+		}
+		State = PLAYERSTATE::KNOCKBACK;
+		bPressedJump = true;
+
+		FVector playvec = FRotator(0, GetActorRotation().Yaw, 0).Vector();
+		StateVector = FVector2D(0);
+		FVector GetVec = box->GetActorLocation() - GetActorLocation();
+		GetVec.Normalize();
+		FVector2D dir = FVector2D(GetVec.X, GetVec.Y);
+		GetCharacterMovement()->Velocity.Z = 300 * dir.X;
+		//StateVector = FVector2D(dir);
+		FVector SetVec = FVector(dir, 0);
+		FRotator SetRot = FRotator(0, SetVec.Rotation().Yaw, 0);
+		printf("%d %d", dir.X, dir.Y);
+		if(FVector::DotProduct(SetVec, playvec) < 0)
+		{
+			SetActorRotation(SetRot - FRotator(0, 180, 0));
+			GetCharacterMovement()->Velocity.X = -1500 * dir.X;
+			GetCharacterMovement()->Velocity.Y = -1500 * dir.Y;
+			AnimIns->IsKnockBack = -1;
+		}
+		else
+		{
+			GetCharacterMovement()->Velocity.X = -1500 * dir.X;
+			GetCharacterMovement()->Velocity.Y = -1500 * dir.Y;
+			SetActorRotation(SetRot);
+			AnimIns->IsKnockBack = 1;
+		}
 	}
 }
