@@ -18,8 +18,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	int team = 0;
 	AC_Mob();
+	virtual void Hit(class AC_HitBox* box, float value);
 	virtual void Hit(float value);
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 		class UBoxComponent* boxComp;
 protected:
