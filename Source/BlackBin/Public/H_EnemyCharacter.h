@@ -16,10 +16,13 @@ enum class EBossMovingState : uint8
     MovingRight,
     Staying,
     Attacking,
+    BasicOneAttack,
+    BasicTwoAttack,
     Dash,
     BackStep,
     SAttack,
     Idle,
+    Dying,
 };
 
 UCLASS()
@@ -49,11 +52,14 @@ public:
     UPROPERTY(EditAnywhere)
         TSubclassOf<AC_HitBox> HitBoxClass = AC_HitBox::StaticClass();
 
+    class AC_HitBox* Hitbox;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float bossIsFar = 800;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float bossIsClose = 200;
+
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float moveSpeed; // Movement speed
@@ -79,6 +85,7 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = STATE)
         EBossMovingState MoveState = EBossMovingState::Idle;
 
+    void Dying();
     void Idle();
     void MovingBackward();
     void MovingForward();
@@ -89,6 +96,8 @@ public:
     void Dash();
     void BackStep();
     void SAttack();
+    void BasicOneAttack();
+    void BasicTwoAttack();
     void BackMove();
     void Checking();
     void SpawnHitBox();
@@ -101,6 +110,9 @@ public:
     void ForwardMoveAnim();
     void BackwardMoveAnim();
     void IdleAnim();
+    void CheckJump();
+    void CheckSAttack();
+    void DyingMotion();
     //void ChangeState(EBossMovingState NewState);
     //void TimerEvent();
     //UAnimInstance* GetAnimationInstance();
@@ -124,6 +136,7 @@ private:
     FVector EnemyLoc;
     FVector dir; // Movement direction
     FRotator EnemyRot;
+    FVector Direc;
     float dt;
     float distance;
     float playerDistance;
@@ -131,13 +144,20 @@ private:
     float ct1 = 0;
     float backwardSpeed = 600;
     float ct2 = 0;
+    float ct3 = 0;
     int randomN;
     int ranTime;
     float StateTimer;
-    bool animationFinished = false;
+    bool animFinished = false;
     FTimerHandle TimerHandle;
     UAnimMontage* CurrentMontage;
-    
+    bool isJumping = false;
+
+    bool isAttackingOne = false;
+    bool isAttackingTwo = false;
+    bool isAttackingThree = false;
+    bool isAttackingStrong = false;
+
 };
 
 

@@ -10,6 +10,7 @@ UH_AnimInst::UH_AnimInst()
     static ConstructorHelpers::FObjectFinder<UAnimMontage> SAttack(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/HM_SAttack.HM_SAttack'"));
     if (SAttack.Succeeded())
     {
+        UE_LOG(LogTemp, Warning, TEXT("adafaf"));
         SAttackMontage = SAttack.Object;
     }
 
@@ -70,6 +71,12 @@ UH_AnimInst::UH_AnimInst()
     if (MovingIdle.Succeeded())
     {
         IdleMongtage = MovingIdle.Object;
+    }
+
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> Dying(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/DyingAnim.DyingAnim'"));
+    if (Dying.Succeeded())
+    {
+        DyingMongtage = Dying.Object;
     }
 
 }
@@ -181,5 +188,13 @@ void UH_AnimInst::PlayMovingIdleMongtage()
     if (!Montage_IsPlaying(IdleMongtage))
     {
         Montage_Play(IdleMongtage, 1.0f);
+    }
+}
+
+void UH_AnimInst::PlayDyingMongtage()
+{
+    if (!Montage_IsPlaying(DyingMongtage))
+    {
+        Montage_Play(DyingMongtage, 1.0f);
     }
 }
