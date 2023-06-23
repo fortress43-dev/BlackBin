@@ -41,6 +41,7 @@ public:
 
 	void PlayMovingIdleMongtage();
 
+	void PlayDyingMongtage();
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FVector Velocity;
 	
@@ -66,6 +67,8 @@ public:
 	UAnimMontage* MpveForwardMongtage;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
 	UAnimMontage* IdleMongtage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* DyingMongtage;
 
 
 

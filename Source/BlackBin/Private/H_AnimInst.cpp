@@ -73,6 +73,12 @@ UH_AnimInst::UH_AnimInst()
         IdleMongtage = MovingIdle.Object;
     }
 
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> Dying(TEXT("/Script/Engine.AnimMontage'/Game/HSH/BluePrint/DyingAnim.DyingAnim'"));
+    if (Dying.Succeeded())
+    {
+        DyingMongtage = Dying.Object;
+    }
+
 }
 
 void UH_AnimInst::NativeUpdateAnimation(float DeltaSeconds)
@@ -182,5 +188,13 @@ void UH_AnimInst::PlayMovingIdleMongtage()
     if (!Montage_IsPlaying(IdleMongtage))
     {
         Montage_Play(IdleMongtage, 1.0f);
+    }
+}
+
+void UH_AnimInst::PlayDyingMongtage()
+{
+    if (!Montage_IsPlaying(DyingMongtage))
+    {
+        Montage_Play(DyingMongtage, 1.0f);
     }
 }
