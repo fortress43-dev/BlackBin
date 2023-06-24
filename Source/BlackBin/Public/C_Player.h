@@ -28,11 +28,6 @@ class BLACKBIN_API AC_Player : public AC_Mob
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* CameraBoom;
-
-	/** Follow camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class UCameraComponent* FollowCamera;
-
 		
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -109,11 +104,20 @@ class BLACKBIN_API AC_Player : public AC_Mob
 public:
 	AC_Player();
 
-
+	/** Follow camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class UCameraComponent* FollowCamera;
+	
+	UPROPERTY()
+	bool IsFocus = false;
+	UPROPERTY()
+	class UStaticMeshComponent* StaffComp;
 	UPROPERTY()
 	class UNiagaraComponent* Trail;
 	UPROPERTY()
 	class UNiagaraComponent* Charging;
+	UPROPERTY()
+	class AC_Arrow* Arrow;
 	PLAYERSTATE	State	= PLAYERSTATE::MOVEMENT;
 	UPROPERTY()
 	float	StateTimer	= 0;

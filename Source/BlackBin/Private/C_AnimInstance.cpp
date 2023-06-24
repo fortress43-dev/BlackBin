@@ -6,10 +6,9 @@
 
 #include "C_AnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
-
 #include "C_Player.h"
 #include "NiagaraComponent.h"
+#include "Camera/CameraComponent.h"
 UC_AnimInstance::UC_AnimInstance()
 {
 }
@@ -32,6 +31,8 @@ void UC_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			FVector Acc = CharacterMovement->GetCurrentAcceleration();
 			ShouldMove = (Acc != FVector(0) && MovementSpeed > 3);
 			Host = Character;
+			ArrowZ = Host->FollowCamera->GetComponentRotation().Vector().Z;
+			ArrowP = Character->gageArrow/100;
 			IsArrow = bool(Character->gageArrow);
 		}
 	}
