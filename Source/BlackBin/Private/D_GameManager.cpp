@@ -51,6 +51,13 @@ AD_GameManager::AD_GameManager()
 
 #pragma endregion
 	
+#pragma region BattleUI value Setup
+	
+
+
+
+#pragma endregion
+
 }
 
 // Called when the game starts or when spawned
@@ -125,6 +132,11 @@ void AD_GameManager::ShowOnGameWidget(int zOrder = 0) {
 	onGameWidget = CreateWidget<UD_OnGameWidget>(GetWorld(), onGameWidgetSource);
 	onGameWidget->AddToViewport(zOrder);
 	
+	// update widget's information
+	onGameWidget->bossMaxHp	   = bossHp;
+	onGameWidget->playerMaxHp  = playerHp;
+	onGameWidget->barrierMaxHp = barrierHp;
+	
 }
 
 #pragma endregion
@@ -182,6 +194,5 @@ void AD_GameManager::SetBattlePanelVisibility(bool isVisible) {
 
 // Hide StoryWidget
 void AD_GameManager::HideStoryWidget() {
-	print("video end");
 	startStoryWidget->RemoveFromParent();
 }
