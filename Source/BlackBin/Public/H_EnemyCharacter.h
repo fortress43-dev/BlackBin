@@ -67,6 +67,8 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float dashSpeed;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        float dashTime = 2000;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float bossStanceMode = 1600.0f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         int32 randomNumber;
