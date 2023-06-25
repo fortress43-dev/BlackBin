@@ -29,7 +29,7 @@ void UD_OnGameWidget::SetBarrierHpBar(int32 curHp)
 {
 	if (curHp < 0) curHp = 0;
 	if (curHp > barrierMaxHp) curHp = barrierMaxHp;
-	BossHpProgressBar->SetPercent(curHp / barrierMaxHp);
+	BarrierHpProgressBar->SetPercent(curHp / barrierMaxHp);
 }
 
 void UD_OnGameWidget::SetGuideText(FText text)

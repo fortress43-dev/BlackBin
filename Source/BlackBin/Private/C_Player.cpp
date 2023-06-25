@@ -21,6 +21,7 @@
 #include <Engine/SkeletalMeshSocket.h>
 #include <Components/SplineMeshComponent.h>
 #include "D_OnGameWidget.h"
+#include "D_GameManager.h"
 // Sets default values
 AC_Player::AC_Player()
 {
@@ -366,9 +367,6 @@ void AC_Player::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
-
-	printf("%f", MovementVector.X);
-	printf("%f", MovementVector.Y);
 	if (Controller != nullptr)
 	{ 
 		if(State == PLAYERSTATE::MOVEMENT)
@@ -875,10 +873,8 @@ void AC_Player::StateArrow()
 		Arrow->SetActorRotation(dir.Rotation());
 		if (gageArrow == 100 && Statestep == 0)
 		{
-			print("Charger1")
 			if (ArrowCharging)
 			{
-				print("Charger2")
 				ArrowCharging->ActivateSystem();
 				ArrowCharging->ResetSystem();
 			}
@@ -939,7 +935,6 @@ void AC_Player::StatePowerCharging()
 }
 void AC_Player::StateKnockBack()
 {
-	print("HIT");
 	if (GetCharacterMovement()->Velocity.Z == 0)
 	{
 		if (Statestep == 0)
@@ -968,14 +963,16 @@ void AC_Player::StateReset()
 
 void AC_Player::Hit(AC_HitBox* box, float value)
 {
-	UD_OnGameWidget* widget = Cast<UD_OnGameWidget>(UGameplayStatics::GetActorOfClass(GetWorld(), UD_OnGameWidget::StaticClass()));
+	AD_GameManager* widget = Cast<AD_GameManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AD_GameManager::StaticClass()));
 	if (Barrier != nullptr)
 	{
-		BarrierShield -= 10;
 		value = FMath::Max(value - BarrierShield, 0);
+		BarrierShield -= 10;
 		if (widget)
 		{
-			widget->SetBarrierHpBar(BarrierShield);
+			printf("barrier : %d", BarrierShield);
+			if (widget->onGameWidget)
+			widget->onGameWidget->SetBarrierHpBar(BarrierShield);
 		}
 		if (BarrierShield > 0)
 		{
@@ -986,7 +983,6 @@ void AC_Player::Hit(AC_HitBox* box, float value)
 			FVector2D dir = FVector2D(GetVec.X, GetVec.Y);
 			FVector SetVec = FVector(dir, 0);
 			FRotator SetRot = FRotator(0, SetVec.Rotation().Yaw, 0);
-			printf("%d %d", dir.X, dir.Y);
 			if (FVector::DotProduct(SetVec, playvec) < 0)
 			{
 				GetCharacterMovement()->Velocity.X = 1000 * dir.X;
@@ -999,7 +995,8 @@ void AC_Player::Hit(AC_HitBox* box, float value)
 		Super::Hit(box, value);
 		if (widget)
 		{
-			widget->SetPlayerHpBar(hp);
+			if (widget->onGameWidget)
+			widget->onGameWidget->SetPlayerHpBar(hp);
 		}
 		StateReset();
 		if (AnimIns->Montage_IsPlaying(AnimIns->GetCurrentActiveMontage()))
@@ -1023,7 +1020,6 @@ void AC_Player::Hit(AC_HitBox* box, float value)
 		//StateVector = FVector2D(dir);
 		FVector SetVec = FVector(dir, 0);
 		FRotator SetRot = FRotator(0, SetVec.Rotation().Yaw, 0);
-		printf("%d %d", dir.X, dir.Y);
 		if(FVector::DotProduct(SetVec, playvec) < 0)
 		{
 			SetActorRotation(SetRot - FRotator(0, 180, 0));
