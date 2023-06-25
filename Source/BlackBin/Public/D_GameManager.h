@@ -52,11 +52,11 @@ public:
 	TSubclassOf<class UD_OnGameWidget> onGameWidgetSource;
 
 	//Created Widget
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	class UMainMenuWidget* mainMenuWidget = nullptr;
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	class UD_StartStoryWidget* startStoryWidget = nullptr;
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	class UD_OnGameWidget* onGameWidget = nullptr;
 	
 	//MediaPlayer
@@ -69,7 +69,7 @@ public:
 #pragma region MapNames
 	UPROPERTY(VisibleAnywhere, Category = "Maps Names")
 	FString MainMenuLevelName = TEXT("MainMenu");
-	UPROPERTY(VisibleAnywhere, Category = "Maps Names")
+	UPROPERTY(EditAnywhere, Category = "Maps Names")
 	FString OnGameLevelName   = TEXT("OnGame");
 #pragma endregion
 
