@@ -83,8 +83,9 @@ void AD_GameManager::BeginPlay()
 	}
 	else if(curMapName.Contains(OnGameLevelName, ESearchCase::IgnoreCase)){
 		if (startStoryWidgetSource && onGameWidgetSource) {
-			//ShowStoryWidget(1);
+			ShowStoryWidget(1);
 			ShowOnGameWidget(1);
+			onGameWidget->PanelBattle->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
 
