@@ -6,6 +6,8 @@
 #include "Animation/AnimInstance.h"
 #include "H_AnimInst.generated.h"
 
+DECLARE_MULTICAST_DELEGATE(FOnbasicOneAttackDelegate);
+
 /**
  * 
  */
@@ -70,10 +72,10 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
 	UAnimMontage* DyingMongtage;
 
+	UFUNCTION()
+	void AnimNotify_basicOneAttack();
 
-
-
-
+	FOnbasicOneAttackDelegate attNotify;
 
 
 };

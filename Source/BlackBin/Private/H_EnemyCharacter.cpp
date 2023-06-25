@@ -72,7 +72,11 @@ void AH_EnemyCharacter::BeginPlay()
 
     AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
     AnimInstance->OnMontageEnded.AddDynamic(this, &AH_EnemyCharacter::OnAnimeMontageEnded);
-
+    AnimInstance->attNotify.AddLambda([this]() -> void
+        {
+            //할 거
+            SpawnHitBox();
+        });
 }
 //void AH_EnemyCharacter::TimerEvent()
 //{
@@ -308,7 +312,7 @@ void AH_EnemyCharacter::Attacking()
             ThirdBasicAttack();
         }*/
 
-        SpawnHitBox();
+        //SpawnHitBox();
 
     }
 
@@ -361,7 +365,7 @@ void AH_EnemyCharacter::BackStep()
 void AH_EnemyCharacter::SAttack() {
 
     SAttackMongtage();
-    SpawnHitBox();
+    //SpawnHitBox();
    
 }
 
@@ -371,7 +375,7 @@ void AH_EnemyCharacter::BasicOneAttack()
         GetCharacterMovement()->MaxWalkSpeed = 0;
 
         SecondBasicAttack();
-        SpawnHitBox();
+        //SpawnHitBox();
 
     }
     else {
@@ -386,7 +390,7 @@ void AH_EnemyCharacter::BasicTwoAttack()
     if (distance < 300) {
         GetCharacterMovement()->MaxWalkSpeed = 0;
         ThirdBasicAttack();
-        SpawnHitBox();
+        //SpawnHitBox();
 
     }
     else {
@@ -509,6 +513,7 @@ void AH_EnemyCharacter::OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterru
 
 void AH_EnemyCharacter::SpawnHitBox()
 {
+
     FActorSpawnParameters SpawnParams;
     SpawnParams.Owner = this;
 
@@ -518,14 +523,17 @@ void AH_EnemyCharacter::SpawnHitBox()
     FVector SpawnLocation = GetActorLocation();
     FVector addLoc = GetActorForwardVector() * 200;
     SpawnLocation.Z -= 50.f;
-    AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-    isAttackingOne = AnimInstance->Montage_IsPlaying(AnimInstance->BasicAttackMongtage);
-    isAttackingTwo = AnimInstance->Montage_IsPlaying(AnimInstance->BasicAttackOneMongtage);
-    isAttackingThree = AnimInstance->Montage_IsPlaying(AnimInstance->BasicAttackTwoMongtage);
-    isAttackingStrong = AnimInstance->Montage_IsPlaying(AnimInstance->SAttackMontage);
+
+
+    /*AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());*/
+
+	/* isAttackingOne = AnimInstance->Montage_IsPlaying(AnimInstance->BasicAttackMongtage);
+	 isAttackingTwo = AnimInstance->Montage_IsPlaying(AnimInstance->BasicAttackOneMongtage);
+	 isAttackingThree = AnimInstance->Montage_IsPlaying(AnimInstance->BasicAttackTwoMongtage);
+	 isAttackingStrong = AnimInstance->Montage_IsPlaying(AnimInstance->SAttackMontage);*/
     //2. 만약 커렌트 타임이 3을 넘어가면
 
-    if (ct > 3) {
+   /* if (ct > 3) {*/
         //히트박스를 소환한다
 
         SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -540,8 +548,8 @@ void AH_EnemyCharacter::SpawnHitBox()
             Hitbox->team = team;
             Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
         }
-        ct = 0;
-    }
+		/*    ct = 0;
+		}*/
 }
 
 void AH_EnemyCharacter::SAttackMongtage()
