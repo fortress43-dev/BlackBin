@@ -5,7 +5,11 @@
 #include <UMG/Public/Components/ProgressBar.h>
 #include <UMG/Public/Components/TextBlock.h>
 
+void UD_OnGameWidget::NativeConstruct() {
 
+	Super::NativeConstruct();
+
+}
 
 void UD_OnGameWidget::SetBossHpBar(int32 curHp)
 {

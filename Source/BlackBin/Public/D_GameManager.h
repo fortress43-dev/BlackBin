@@ -52,11 +52,11 @@ public:
 	TSubclassOf<class UD_OnGameWidget> onGameWidgetSource;
 
 	//Created Widget
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	class UMainMenuWidget* mainMenuWidget = nullptr;
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	class UD_StartStoryWidget* startStoryWidget = nullptr;
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	class UD_OnGameWidget* onGameWidget = nullptr;
 	
 	//MediaPlayer

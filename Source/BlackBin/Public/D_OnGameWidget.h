@@ -15,10 +15,10 @@ UCLASS()
 class BLACKBIN_API UD_OnGameWidget : public UUserWidget
 {
 	GENERATED_BODY()
-
+		
 
 public:
-	//virtual void NativeConstruct() override;
+	virtual void NativeConstruct() override;
 
 #pragma region UI Elements
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
