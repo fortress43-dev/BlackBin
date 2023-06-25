@@ -83,8 +83,9 @@ void AD_GameManager::BeginPlay()
 	}
 	else if(curMapName.Contains(OnGameLevelName, ESearchCase::IgnoreCase)){
 		if (startStoryWidgetSource && onGameWidgetSource) {
-			//ShowStoryWidget(1);
+			ShowStoryWidget(1);
 			ShowOnGameWidget(1);
+			onGameWidget->PanelBattle->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
 
@@ -114,9 +115,7 @@ void AD_GameManager::ShowMainWidget(int zOrder = 0) {
 //ShowStrotyWidget
 void AD_GameManager::ShowStoryWidget(int zOrder = 0) {
 	// #FunctionDescribtion
-	// 마우스를 보이게 한다 
 	// Main Widget 을 viewport 에 띄운다
-	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 	startStoryWidget = CreateWidget<UD_StartStoryWidget>(GetWorld(), startStoryWidgetSource);
 	startStoryWidget->AddToViewport(zOrder);
 

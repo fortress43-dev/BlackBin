@@ -22,6 +22,8 @@ public:
 
 #pragma region UI Elements
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UCanvasPanel* PanelBattle;
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UCanvasPanel* PanelBossInfo;
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UProgressBar* BossHpProgressBar;

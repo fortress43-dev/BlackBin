@@ -194,7 +194,9 @@ protected:
 	void StateRoll();
 	void StatePowerCharging(); 
 	void StateKnockBack();
-	TObjectPtr<class USoundBase> barriersound;
+	TObjectPtr<class USoundBase> barrierSound;
+	TObjectPtr<class USoundBase> arrowSound;
+	TObjectPtr<class USoundBase> chargingSound;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
