@@ -28,11 +28,6 @@ class BLACKBIN_API AC_Player : public AC_Mob
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* CameraBoom;
-
-	/** Follow camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class UCameraComponent* FollowCamera;
-
 		
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -109,11 +104,25 @@ class BLACKBIN_API AC_Player : public AC_Mob
 public:
 	AC_Player();
 
-
+	/** Follow camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class UCameraComponent* FollowCamera;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class USplineMeshComponent* BowStringComp1;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class USplineMeshComponent* BowStringComp2;
+	UPROPERTY()
+	bool IsFocus = false;
+	UPROPERTY()
+	class UStaticMeshComponent* StaffComp;
 	UPROPERTY()
 	class UNiagaraComponent* Trail;
 	UPROPERTY()
 	class UNiagaraComponent* Charging;
+	UPROPERTY()
+	class UNiagaraComponent* ArrowCharging;
+	UPROPERTY()
+	class AC_Arrow* Arrow;
 	PLAYERSTATE	State	= PLAYERSTATE::MOVEMENT;
 	UPROPERTY()
 	float	StateTimer	= 0;
@@ -169,6 +178,7 @@ protected:
 	void BarrierEnd();
 
 	void Attack();
+	void ArrowCheck();
 	void ArrowAttack();
 	void PowerAttackStart();
 	void PowerAttackEnd();
