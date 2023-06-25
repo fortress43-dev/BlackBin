@@ -4,32 +4,21 @@
 #include "D_StartStoryWidget.h"
 #include <UMG/Public/Components/Border.h>
 #include "Components/Widget.h"
+#include <UMG/Public/Components/Image.h>
 
  void UD_StartStoryWidget::NativeConstruct() {
 	
 	 Super::NativeConstruct();
 
-	 borderCinematic->SetVisibility(ESlateVisibility::Hidden);
-	 borderStoryText->OnMouseButtonDownEvent.BindUFunction(this, FName("OnClickScreen"));
-	 borderCinematic->OnMouseButtonDownEvent.BindUFunction(this, FName("OnClickScreen"));
+	 StartCinemaPlayer->OnMouseButtonDownEvent.BindUFunction(this, FName("OnClickScreen"));
 
-	 // Add PlayListImage/Video
-	 playList.Add(borderStoryText);
-	 playList.Add(borderCinematic);
+	 
 }
 
  void UD_StartStoryWidget::OnClickScreen() {
-	// Show Next Border from List
-	// 1. Hide Current Border
-	// 2. make Visible Next Border
-	// condition : if idx > playList element count -> hide current
-	 if (idx < playList.Num()-1) {
-		 playList[idx]->SetVisibility(ESlateVisibility::Hidden);
-		 playList[idx + 1]->SetVisibility(ESlateVisibility::Visible);
-		 idx++;
-	 }
-	 else {
-		 playList[idx]->SetVisibility(ESlateVisibility::Hidden);
-	 }
+	// 영상플레이 도중 화면을 클릭하면 플레이어를 끈다
+	RemoveFromParent();
+	// 플레이어 카메라를 시작장면으로 세팅한다
+
  }
 

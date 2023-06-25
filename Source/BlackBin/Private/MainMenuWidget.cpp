@@ -5,6 +5,8 @@
 #include <UMG/Public/Components/Button.h>
 #include <UMG/Public/Components/CanvasPanel.h>
 #include <Kismet/GameplayStatics.h>
+#include <UMG/Public/Components/BackgroundBlur.h>
+#include <UMG/Public/Components/WidgetComponent.h>
 
 void UMainMenuWidget::NativeConstruct() {
 
@@ -14,18 +16,25 @@ void UMainMenuWidget::NativeConstruct() {
 	btnNewGame   ->OnClicked.AddDynamic(this, &UMainMenuWidget::OnClickNewGame);
 	btnQuit	     ->OnClicked.AddDynamic(this, &UMainMenuWidget::OnClickQuit);
 	btnStoryMode ->OnClicked.AddDynamic(this, &UMainMenuWidget::OnClickStoryMode);
+
+	//Change guideText
+	btnNewGame->OnHovered.AddDynamic(this, &UMainMenuWidget::OnWidgetHovered);
 	
-	// Panel visibility Init
+
+	// Init WidgetStates
 	PanelDifficulty->SetVisibility(ESlateVisibility::Hidden);
+	BackgroundBlur->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UMainMenuWidget::OnClickNewGame() {
 	// Toggle Visibility
 	if (PanelDifficulty->GetVisibility() == ESlateVisibility::Visible) {
 		PanelDifficulty->SetVisibility(ESlateVisibility::Hidden);
+		BackgroundBlur->SetVisibility(ESlateVisibility::Hidden);
 	}
 	else {
 		PanelDifficulty->SetVisibility(ESlateVisibility::Visible);
+		BackgroundBlur->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
@@ -37,4 +46,10 @@ void UMainMenuWidget::OnClickStoryMode() {
 void UMainMenuWidget::OnClickQuit() {
 	// Quit Game
 	UKismetSystemLibrary::QuitGame(GetWorld(),GetWorld()->GetFirstPlayerController(), EQuitPreference::Quit, false);
+}
+
+void UMainMenuWidget::OnWidgetHovered()
+{
+		UE_LOG(LogTemp, Warning, TEXT(" obj "),);
+	
 }
