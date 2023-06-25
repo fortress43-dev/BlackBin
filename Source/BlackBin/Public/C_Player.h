@@ -13,6 +13,7 @@ enum class PLAYERSTATE
 	MOVEMENT,
 	ATTACK,
 	ROLL,
+	KNOCKBACK,
 	BARRIER,
 	ARROW,
 	POWERATTACK,
@@ -82,6 +83,9 @@ class BLACKBIN_API AC_Player : public AC_Mob
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* RollMontage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* KnockBackMontage;
+
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class AC_Barrier> BarrierClass;
 	
@@ -97,14 +101,19 @@ class BLACKBIN_API AC_Player : public AC_Mob
 	UFUNCTION()
 		void OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
+
+
 	virtual void PostInitializeComponents() override;
 	//UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		//TObjectPtr<class UMotionWarpingComponent> MotionWarpComponent;
 public:
 	AC_Player();
 
+
 	UPROPERTY()
 	class UNiagaraComponent* Trail;
+	UPROPERTY()
+	class UNiagaraComponent* Charging;
 	PLAYERSTATE	State	= PLAYERSTATE::MOVEMENT;
 	UPROPERTY()
 	float	StateTimer	= 0;
@@ -139,8 +148,10 @@ public:
 	UPROPERTY()
 	FVector2D PlayerVector;
 
-	virtual void Hit(float value) override;
+	virtual void Hit(class AC_HitBox* box, float value) override;
 protected:
+	
+	bool IsDoState		= false;
 	int Statestep		= 0;
 	virtual void Tick(float DeltaTime) override;
 	/** Called for movement input */
@@ -172,7 +183,7 @@ protected:
 	void StateBarrier();
 	void StateRoll();
 	void StatePowerCharging(); 
-
+	void StateKnockBack();
 	TObjectPtr<class USoundBase> barriersound;
 protected:
 	// APawn interface

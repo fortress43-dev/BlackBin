@@ -32,6 +32,7 @@ void UC_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			FVector Acc = CharacterMovement->GetCurrentAcceleration();
 			ShouldMove = (Acc != FVector(0) && MovementSpeed > 3);
 			Host = Character;
+			IsArrow = bool(Character->gageArrow);
 		}
 	}
 }
@@ -66,6 +67,9 @@ void UC_AnimInstance::AnimNotify_PlayTrail()
 {
 	if (Host)
 	{
+		FRotator SetRot = Host->GetActorRotation();
+		Host->GetCharacterMovement()->Velocity.X = SetRot.Vector().X * 500;
+		Host->GetCharacterMovement()->Velocity.Y = SetRot.Vector().Y * 500;
 		Host->Trail->Activate();
 	}
 }
@@ -74,6 +78,8 @@ void UC_AnimInstance::AnimNotify_EndTrail()
 {
 	if (Host)
 	{
+		Host->GetCharacterMovement()->Velocity.X = 0;
+		Host->GetCharacterMovement()->Velocity.Y = 0;
 		Host->Trail->Deactivate();
 	}
 }

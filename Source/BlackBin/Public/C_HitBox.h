@@ -14,12 +14,16 @@ class BLACKBIN_API AC_HitBox : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AC_HitBox();
+	UPROPERTY(EditAnywhere)
 	float lifeTime = 0;
+	UPROPERTY(EditAnywhere)
 	int team	= 0;
 	UPROPERTY(EditAnywhere)
 	int dmg		= 0;
 	UPROPERTY(EditAnywhere)
 	float slowmotion = 1;
+	UPROPERTY(EditAnywhere)
+	class AC_Mob* Host;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* boxComp;
 	TObjectPtr<class USoundBase> hitsound;
