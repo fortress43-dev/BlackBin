@@ -67,7 +67,7 @@ public:
 
 
 #pragma region MapNames
-	UPROPERTY(VisibleAnywhere, Category = "Maps Names")
+	UPROPERTY(EditAnywhere, Category = "Maps Names")
 	FString MainMenuLevelName = TEXT("MainMenu");
 	UPROPERTY(EditAnywhere, Category = "Maps Names")
 	FString OnGameLevelName   = TEXT("OnGame");
