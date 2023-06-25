@@ -13,7 +13,8 @@ class BLACKBIN_API AC_HitBox : public AActor
 	
 public:	
 	// Sets default values for this actor's properties
-	AC_HitBox();
+	UPROPERTY(EditAnywhere)
+	bool IsBrocken;
 	UPROPERTY(EditAnywhere)
 	float lifeTime = 0;
 	UPROPERTY(EditAnywhere)
@@ -29,6 +30,7 @@ public:
 	TObjectPtr<class USoundBase> hitsound;
 	TObjectPtr<class UNiagaraSystem> Fx;
 protected:
+	AC_HitBox();
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void NotifyActorBeginOverlap(AActor *OtherActor) override;

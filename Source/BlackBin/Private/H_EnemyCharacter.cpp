@@ -201,7 +201,7 @@ void AH_EnemyCharacter::Idle()
 {
     GetCharacterMovement()->MaxWalkSpeed = 0;
 
-    if (distance < 2000) {
+    if (distance < dashTime) {
         MoveState = EBossMovingState::Dash;
     }
 }
@@ -534,7 +534,7 @@ void AH_EnemyCharacter::SpawnHitBox()
         //만약 히트박스가 소환됬다면
         if (Hitbox)
         {
-
+            Hitbox->Host = this;
             Hitbox->dmg = 10;
             Hitbox->lifeTime = 10;
             Hitbox->team = team;
