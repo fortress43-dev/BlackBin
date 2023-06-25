@@ -84,13 +84,13 @@ void AD_GameManager::BeginPlay()
 	else if(curMapName.Contains(OnGameLevelName, ESearchCase::IgnoreCase)){
 		if (startStoryWidgetSource && onGameWidgetSource) {
 			ShowStoryWidget(1);
-			ShowOnGameWidget(1);
+			ShowOnGameWidget(0);
 			onGameWidget->PanelBattle->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
 
 	// close widget when cinema is ended
-	openingMediaPlayer->OnEndReached.AddDynamic(this, &AD_GameManager::HideStoryWidget);
+	//openingMediaPlayer->OnEndReached.AddDynamic(this, &AD_GameManager::HideStoryWidget);
 }
 
 // Called every frame

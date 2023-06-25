@@ -7,10 +7,13 @@
 #include <Kismet/GameplayStatics.h>
 #include <UMG/Public/Components/BackgroundBlur.h>
 #include <UMG/Public/Components/WidgetComponent.h>
+#include "D_GameManager.h"
 
 void UMainMenuWidget::NativeConstruct() {
 
 	Super::NativeConstruct();
+	
+	gameManager = Cast<AD_GameManager>(UGameplayStatics::GetActorOfClass(GetWorld(),AD_GameManager::StaticClass()));
 
 	// Button Function Binding
 	btnNewGame   ->OnClicked.AddDynamic(this, &UMainMenuWidget::OnClickNewGame);
@@ -40,7 +43,14 @@ void UMainMenuWidget::OnClickNewGame() {
 
 void UMainMenuWidget::OnClickStoryMode() {
 	// Open Level of Specific Name
-	UGameplayStatics::OpenLevel(GetWorld(), TEXT("OnGame"));
+	if (gameManager) {
+		FString onGameName = gameManager->OnGameLevelName;
+		UGameplayStatics::OpenLevel(GetWorld(), FName(*onGameName));
+	}
+	else {
+		UGameplayStatics::OpenLevel(GetWorld(), TEXT("OnGame"));
+	}
+	
 }
 
 void UMainMenuWidget::OnClickQuit() {

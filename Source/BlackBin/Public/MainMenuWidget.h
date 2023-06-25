@@ -16,6 +16,9 @@ public:
 	virtual void NativeConstruct() override;
 
 public:
+	UPROPERTY(EditAnywhere)
+	class AD_GameManager* gameManager;
+
 #pragma region Buttons
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UButton* btnNewGame;
