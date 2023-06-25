@@ -54,6 +54,7 @@ AC_Player::AC_Player()
 	{
 		ArrowClass = (UClass*)ArrowObject.Object->GeneratedClass;
 	}
+
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
 	GetCharacterMovement()->JumpZVelocity = 2000.f;
@@ -99,6 +100,10 @@ void AC_Player::PostInitializeComponents()
 			if (NiagaraComponent->GetName() == "Charge")
 			{
 				Charging = NiagaraComponent;
+			}
+			if (NiagaraComponent->GetName() == "ArrowCharger")
+			{
+				ArrowCharging = NiagaraComponent;
 			}
 		}
 		if (UStaticMeshComponent* StaffComponent = Cast<UStaticMeshComponent>(Component))
@@ -282,7 +287,7 @@ void AC_Player::Tick(float DeltaTime)
 		{
 			StateReset();
 		}
-		else
+		else if (State != PLAYERSTATE::ARROW)
 		{
 			AddMovementInput(StateDirectionX, StateVector.Y);
 			AddMovementInput(StateDirectionY, StateVector.X);
@@ -325,6 +330,7 @@ void AC_Player::SetupPlayerInputComponent(class UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(BarrierAction, ETriggerEvent::Completed, this, &AC_Player::BarrierEnd);
 
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AC_Player::Attack);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AC_Player::ArrowCheck);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AC_Player::ArrowAttack);
 
 		EnhancedInputComponent->BindAction(PowerAttackAction, ETriggerEvent::Triggered, this, &AC_Player::PowerAttackStart);
@@ -347,6 +353,8 @@ void AC_Player::Move(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
+	printf("%f", MovementVector.X);
+	printf("%f", MovementVector.Y);
 	if (Controller != nullptr)
 	{ 
 		if(State == PLAYERSTATE::MOVEMENT)
@@ -370,6 +378,12 @@ void AC_Player::Move(const FInputActionValue& Value)
 			StateDirectionX = ForwardDirection;
 			StateDirectionY = RightDirection;
 			StateVector		= MovementVector;
+		}
+		else if (State == PLAYERSTATE::ARROW)
+		{
+			AddMovementInput(StateDirectionX, MovementVector.Y);
+			AddMovementInput(StateDirectionY, MovementVector.X);
+			StateVector = MovementVector;
 		}
 	}
 	PlayerVector = MovementVector;
@@ -463,15 +477,22 @@ void AC_Player::Attack()
 				StateTimer = 0;
 			}
 		}
-		else if (State == PLAYERSTATE::MOVEMENT)
-		{	
+	}
+}
+void AC_Player::ArrowCheck()
+{
+	if (Controller != nullptr && IsFocus)
+	{
+		if (State == PLAYERSTATE::MOVEMENT)
+		{
 			State = PLAYERSTATE::ARROW;
-			StateVector = FVector2D(0);
+			
 			if (StaffComp)
 			{
 				StaffComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
 				StaffComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, FName("hand_lSocket"));
 			}
+
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
 			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -484,10 +505,18 @@ void AC_Player::Attack()
 				Arrow->dmg = 6 + gageArrow / 20;
 				Arrow->lifeTime = 100;
 			}
+			GetCharacterMovement()->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
+			const FRotator YawRotation(0, rotator.Yaw, 0);
+			// get forward vector
+			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			// get right vector 
+			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+			StateDirectionX = ForwardDirection;
+			StateDirectionY = RightDirection;
 		}
 	}
 }
-
 void AC_Player::ArrowAttack()
 {
 	if (State == PLAYERSTATE::ARROW)
@@ -502,7 +531,7 @@ void AC_Player::ArrowAttack()
 			StaffComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
 			StaffComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, FName("hand_rSocket"));
 		}
-		State = PLAYERSTATE::MOVEMENT;
+		StateReset();
 		gageArrow = 0;
 	}
 }
@@ -553,9 +582,18 @@ void AC_Player::ArrowEnd()
 		FollowCamera->SetRelativeLocation(FVector(66.f, 0.f, 82.f));
 		gageArrow = 0;
 		IsFocus = false;
+		if (Arrow)
+		{
+			Arrow->Destroy();
+		}
+		if (StaffComp)
+		{
+			StaffComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+			StaffComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, FName("hand_rSocket"));
+		}
 		if (State == PLAYERSTATE::ARROW)
 		{
-			State = PLAYERSTATE::MOVEMENT;
+			StateReset();
 		}
 	}
 }
@@ -660,6 +698,7 @@ void AC_Player::BarrierEnd()
 	{
 		if (Barrier)
 		{
+			Barrier->SetActorScale3D(FVector(0.1));
 			Barrier->IsBoom = true;
 		}
 		State = PLAYERSTATE::MOVEMENT;
@@ -778,13 +817,36 @@ void AC_Player::StateBarrier()
 }
 void AC_Player::StateArrow()
 {
-	gageArrow = FMath::Clamp(gageArrow + .5, 0, 100); // ...at this rotation rate
-	SetActorRotation(FRotator(0, FollowCamera->GetComponentRotation().Yaw, 0));
+	FVector targetVector = FollowCamera->GetComponentRotation().Vector()*500 + GetActorRightVector()*100;
+	FRotator targetRotation = FRotator(0, targetVector.Rotation().Yaw, 0);
+
+	// get forward vector
+	const FVector ForwardDirection = FRotationMatrix(targetRotation).GetUnitAxis(EAxis::X);
+
+	// get right vector 
+	const FVector RightDirection = FRotationMatrix(targetRotation).GetUnitAxis(EAxis::Y);
+
+	StateDirectionX = ForwardDirection;
+	StateDirectionY = RightDirection;
+
+	gageArrow = FMath::Clamp(gageArrow + 1, 0, 100); // ...at this rotation rate
+	SetActorRotation(targetRotation);
 	if (Arrow)
 	{
 		Arrow->SetActorLocation(GetMesh()->GetSocketByName(FName("hand_lSocket"))->GetSocketLocation(GetMesh()));
 		FVector dir = GetMesh()->GetSocketByName(FName("hand_lSocket"))->GetSocketLocation(GetMesh()) - GetMesh()->GetSocketByName(FName("hand_rSocket"))->GetSocketLocation(GetMesh());
 		Arrow->SetActorRotation(dir.Rotation());
+		if (gageArrow == 100 && Statestep == 0)
+		{
+			print("Charger1")
+			if (ArrowCharging)
+			{
+				print("Charger2")
+				ArrowCharging->ActivateSystem();
+				ArrowCharging->ResetSystem();
+			}
+			Statestep = 1;
+		}
 	}
 }
 void AC_Player::StatePowerCharging()

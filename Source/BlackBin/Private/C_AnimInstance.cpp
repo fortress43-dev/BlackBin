@@ -28,6 +28,7 @@ void UC_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			UCharacterMovementComponent* CharacterMovement = Cast<UCharacterMovementComponent>(moveComp);
 			IsFall = CharacterMovement->IsFalling();
 			Velocity = CharacterMovement->Velocity;
+			movementVecter = Character->StateVector;
 			FVector Acc = CharacterMovement->GetCurrentAcceleration();
 			ShouldMove = (Acc != FVector(0) && MovementSpeed > 3);
 			Host = Character;

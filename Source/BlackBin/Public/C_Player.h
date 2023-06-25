@@ -107,7 +107,6 @@ public:
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* FollowCamera;
-	
 	UPROPERTY()
 	bool IsFocus = false;
 	UPROPERTY()
@@ -116,6 +115,8 @@ public:
 	class UNiagaraComponent* Trail;
 	UPROPERTY()
 	class UNiagaraComponent* Charging;
+	UPROPERTY()
+	class UNiagaraComponent* ArrowCharging;
 	UPROPERTY()
 	class AC_Arrow* Arrow;
 	PLAYERSTATE	State	= PLAYERSTATE::MOVEMENT;
@@ -173,6 +174,7 @@ protected:
 	void BarrierEnd();
 
 	void Attack();
+	void ArrowCheck();
 	void ArrowAttack();
 	void PowerAttackStart();
 	void PowerAttackEnd();
