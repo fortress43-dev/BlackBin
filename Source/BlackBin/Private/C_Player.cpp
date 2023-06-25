@@ -19,6 +19,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "DebugMessages.h"
 #include <Engine/SkeletalMeshSocket.h>
+#include <Components/SplineMeshComponent.h>
 // Sets default values
 AC_Player::AC_Player()
 {
@@ -110,8 +111,18 @@ void AC_Player::PostInitializeComponents()
 		{
 			if (StaffComponent->GetName() == "Staff")
 			{
-				print("Exists")
 				StaffComp = StaffComponent;
+			}
+		}
+		if (USplineMeshComponent* Spline = Cast<USplineMeshComponent>(Component))
+		{
+			if (Spline->GetName() == "BowString1")
+			{
+				BowStringComp1 = Spline;
+			}
+			else if (Spline->GetName() == "BowString2")
+			{
+				BowStringComp2 = Spline;
 			}
 		}
 	}
@@ -847,6 +858,14 @@ void AC_Player::StateArrow()
 			}
 			Statestep = 1;
 		}
+	}
+	if (BowStringComp1)
+	{
+		BowStringComp1->SetEndPosition(GetMesh()->GetSocketByName(FName("hand_rSocket"))->GetSocketLocation(GetMesh()) - GetActorLocation());
+	}
+	if (BowStringComp2)
+	{
+		BowStringComp2->SetEndPosition(GetMesh()->GetSocketByName(FName("hand_rSocket"))->GetSocketLocation(GetMesh()) - GetActorLocation());
 	}
 }
 void AC_Player::StatePowerCharging()
