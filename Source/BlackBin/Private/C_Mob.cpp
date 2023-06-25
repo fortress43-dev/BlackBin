@@ -17,7 +17,7 @@ AC_Mob::AC_Mob()
 void AC_Mob::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	hp = max_hp;
 }
 
 // Called every frame
