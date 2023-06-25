@@ -189,7 +189,7 @@ void AH_EnemyCharacter::Dying()
     GetCharacterMovement()->MaxWalkSpeed = 0;
     //Hit(float(Hitbox->dmg));
     DyingMotion();
-
+    printf("Died");
 
     SetActorRotation(FRotator(0.0f, 90.0f, 0.0f));
 
@@ -411,7 +411,6 @@ void AH_EnemyCharacter::BackMove()
 void AH_EnemyCharacter::DyingMotion()
 {
   
-
     AnimInstance->PlayDyingMongtage();
 }
 
@@ -617,7 +616,7 @@ void AH_EnemyCharacter::IdleAnim()
 }
 
 
-void AH_EnemyCharacter::Hit(float value) {
+void AH_EnemyCharacter::Hit(AC_HitBox* box, float value) {
 
     hp -= value;
     if (hp <= 0) {
