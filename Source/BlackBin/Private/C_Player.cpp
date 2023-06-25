@@ -542,6 +542,14 @@ void AC_Player::ArrowAttack()
 			StaffComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
 			StaffComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, FName("hand_rSocket"));
 		}
+		if (BowStringComp1)
+		{
+			BowStringComp1->SetEndPosition(FVector(0));
+		}
+		if (BowStringComp2)
+		{
+			BowStringComp2->SetEndPosition(FVector(0));
+		}
 		StateReset();
 		gageArrow = 0;
 	}
@@ -605,6 +613,14 @@ void AC_Player::ArrowEnd()
 		if (State == PLAYERSTATE::ARROW)
 		{
 			StateReset();
+		}
+		if (BowStringComp1)
+		{
+			BowStringComp1->SetEndPosition(FVector(0));
+		}
+		if (BowStringComp2)
+		{
+			BowStringComp2->SetEndPosition(FVector(0));
 		}
 	}
 }
@@ -861,11 +877,13 @@ void AC_Player::StateArrow()
 	}
 	if (BowStringComp1)
 	{
-		BowStringComp1->SetEndPosition(GetMesh()->GetSocketByName(FName("hand_rSocket"))->GetSocketLocation(GetMesh()) - GetActorLocation());
+		FVector EndLocalPos = BowStringComp1->GetComponentTransform().InverseTransformPosition(GetMesh()->GetSocketByName(FName("hand_rSocket"))->GetSocketLocation(GetMesh()));
+		BowStringComp1->SetEndPosition(EndLocalPos);
 	}
 	if (BowStringComp2)
 	{
-		BowStringComp2->SetEndPosition(GetMesh()->GetSocketByName(FName("hand_rSocket"))->GetSocketLocation(GetMesh()) - GetActorLocation());
+		FVector EndLocalPos = BowStringComp2->GetComponentTransform().InverseTransformPosition(GetMesh()->GetSocketByName(FName("hand_rSocket"))->GetSocketLocation(GetMesh()));
+		BowStringComp2->SetEndPosition(EndLocalPos);
 	}
 }
 void AC_Player::StatePowerCharging()

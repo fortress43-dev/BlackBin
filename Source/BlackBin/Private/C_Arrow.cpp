@@ -26,7 +26,7 @@ void AC_Arrow::Tick(float DeltaTime)
 		FVector ForwardVector = GetActorRotation().Vector(); // 회전 벡터 계산
 
 		// 이동할 거리를 적절히 조절하여 ForwardVector를 사용하여 이동
-		FVector NewLocation = GetActorLocation() + ForwardVector * 2000.f *DeltaTime;
+		FVector NewLocation = GetActorLocation() + ForwardVector * 3000.f *DeltaTime;
 		SetActorLocation(NewLocation);
 	}
 }
