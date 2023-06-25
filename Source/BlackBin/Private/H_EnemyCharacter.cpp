@@ -70,6 +70,9 @@ void AH_EnemyCharacter::BeginPlay()
     Super::BeginPlay();
     //GetWorldTimerManager().SetTimer(TimerHandle, this, &AH_EnemyCharacter::TimerEvent, 3.0f, true);
 
+    AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
+    AnimInstance->OnMontageEnded.AddDynamic(this, &AH_EnemyCharacter::OnAnimeMontageEnded);
+
 }
 //void AH_EnemyCharacter::TimerEvent()
 //{
@@ -85,7 +88,7 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
     dt = DeltaTime;
     ct += DeltaTime;
     ct2 += DeltaTime;
-    if (MoveState != EBossMovingState::Dash && MoveState != EBossMovingState::Dying) {
+    if (MoveState != EBossMovingState::Dash && MoveState != EBossMovingState::Dying && MoveState != EBossMovingState::SAttack && MoveState != EBossMovingState::Attacking && MoveState != EBossMovingState::BackStep) {
         StateTimer += DeltaTime;
 
     }
@@ -186,7 +189,7 @@ void AH_EnemyCharacter::Dying()
     GetCharacterMovement()->MaxWalkSpeed = 0;
     //Hit(float(Hitbox->dmg));
     DyingMotion();
-
+    printf("Died");
 
     SetActorRotation(FRotator(0.0f, 90.0f, 0.0f));
 
@@ -199,7 +202,7 @@ void AH_EnemyCharacter::Idle()
 {
     GetCharacterMovement()->MaxWalkSpeed = 0;
 
-    if (distance < 2000) {
+    if (distance < dashTime) {
         MoveState = EBossMovingState::Dash;
     }
 }
@@ -309,10 +312,6 @@ void AH_EnemyCharacter::Attacking()
         SpawnHitBox();
 
     }
-    else {
-        Checking();
-    }
-
 
 }
 
@@ -326,8 +325,6 @@ void AH_EnemyCharacter::Dash()
     if (distance > 200) {
         // Dash towards the player character
 
-        auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-        if (nullptr == AnimInstance) return;
 
         AnimInstance->PlayRunMontage();
 
@@ -364,15 +361,9 @@ void AH_EnemyCharacter::BackStep()
 
 void AH_EnemyCharacter::SAttack() {
 
-    ct2 += dt;
     SAttackMongtage();
-    //CheckSAttack();
     SpawnHitBox();
-    if (ct2 > 4) {
-        Checking();
-    }
-
-    //CheckSAttack();
+   
 }
 
 void AH_EnemyCharacter::BasicOneAttack()
@@ -408,47 +399,18 @@ void AH_EnemyCharacter::BasicTwoAttack()
 
 void AH_EnemyCharacter::BackMove()
 {
-    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-    if (nullptr == AnimInstance) return;
-
+   
     AnimInstance->PlayBackmoveMontage();
-    CheckJump();
     //점프 몽타주를 하고있는지 상태를 알고싶다
     //만약 몽타주가 끝나면 스테이트를 바꾸고 싶다
     //만약 몽타주가 끝나지 않았다면 끝날때까지 지금 스테이트를 유지하고 싶다
 }
 
-void AH_EnemyCharacter::CheckJump() {
 
-    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-    isJumping = AnimInstance->Montage_IsPlaying(AnimInstance->BackMoveMongtage);
-    //만약 몽타주가 끝나면 스테이트를 바꾸고 싶다
-    if (isJumping == false) {
-
-        Checking();
-
-    }
-
-}
-
-void AH_EnemyCharacter::CheckSAttack()
-{
-    UH_AnimInst* AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-
-    animFinished = AnimInstance->Montage_IsPlaying(AnimInstance->SAttackMontage);
-    //만약 몽타주가 끝나면 스테이트를 바꾸고 싶다
-    if (animFinished == false) {
-
-        Checking();
-
-    }
-}
 
 void AH_EnemyCharacter::DyingMotion()
 {
-    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-    if (nullptr == AnimInstance) return;
-
+  
     AnimInstance->PlayDyingMongtage();
 }
 
@@ -480,13 +442,12 @@ void AH_EnemyCharacter::Checking()
     }
     else if (distance <= 300) {
         // if (animationFinished) {
-        arrayState = { EBossMovingState::MovingBackward, EBossMovingState::Attacking, EBossMovingState::BackStep, EBossMovingState::Staying };
-        arrayWeight = { 0.1f, 2.0f, 0.1f, 0.1f };
+        arrayState = { EBossMovingState::MovingBackward, EBossMovingState::Attacking,EBossMovingState::BasicOneAttack ,EBossMovingState::BasicTwoAttack, EBossMovingState::BackStep, EBossMovingState::Staying };
+        arrayWeight = { 0.1f, 0.3f, 0.2f, 0.2f, 0.1f, 0.1f };
 
         MoveState = GetArrayWeight(arrayState, arrayWeight);
 
 
-        // }
     }
 
 
@@ -524,6 +485,29 @@ EBossMovingState AH_EnemyCharacter::GetArrayWeight(const TArray<EBossMovingState
 }
 
 
+void AH_EnemyCharacter::OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+    if (Montage == AnimInstance->BackMoveMongtage) {    
+        Checking(); 
+    }
+    else if (Montage == AnimInstance->BasicAttackMongtage) {
+        Checking();
+    }
+    else if (Montage == AnimInstance->BasicAttackMongtage) {
+        Checking();
+    }
+    else if (Montage == AnimInstance->BasicAttackOneMongtage) {
+        Checking();
+    }
+    else if (Montage == AnimInstance->BasicAttackTwoMongtage) {
+        Checking();
+    }
+    else if (Montage == AnimInstance->SAttackMontage) {
+        Checking();
+    }
+    
+}
+
 void AH_EnemyCharacter::SpawnHitBox()
 {
     FActorSpawnParameters SpawnParams;
@@ -535,7 +519,7 @@ void AH_EnemyCharacter::SpawnHitBox()
     FVector SpawnLocation = GetActorLocation();
     FVector addLoc = GetActorForwardVector() * 200;
     SpawnLocation.Z -= 50.f;
-    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
+    AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
     isAttackingOne = AnimInstance->Montage_IsPlaying(AnimInstance->BasicAttackMongtage);
     isAttackingTwo = AnimInstance->Montage_IsPlaying(AnimInstance->BasicAttackOneMongtage);
     isAttackingThree = AnimInstance->Montage_IsPlaying(AnimInstance->BasicAttackTwoMongtage);
@@ -551,6 +535,7 @@ void AH_EnemyCharacter::SpawnHitBox()
         //만약 히트박스가 소환됬다면
         if (Hitbox)
         {
+            Hitbox->Host = this;
             Hitbox->dmg = 10;
             Hitbox->lifeTime = 10;
             Hitbox->team = team;
@@ -563,9 +548,7 @@ void AH_EnemyCharacter::SpawnHitBox()
 void AH_EnemyCharacter::SAttackMongtage()
 {
 
-    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-
-    if (nullptr == AnimInstance) return;
+   
 
     AnimInstance->PlaySAttackMontage();
 
@@ -573,8 +556,7 @@ void AH_EnemyCharacter::SAttackMongtage()
 
 void AH_EnemyCharacter::FirstBasicAttack()
 {
-    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-    if (nullptr == AnimInstance) return;
+ 
 
     AnimInstance->PlayBasicAttackMongtage();
 
@@ -582,8 +564,7 @@ void AH_EnemyCharacter::FirstBasicAttack()
 
 void AH_EnemyCharacter::SecondBasicAttack()
 {
-    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-    if (nullptr == AnimInstance) return;
+   
 
     AnimInstance->PlayBasicAttackOneMongtage();
 
@@ -591,8 +572,7 @@ void AH_EnemyCharacter::SecondBasicAttack()
 
 void AH_EnemyCharacter::ThirdBasicAttack()
 {
-    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-    if (nullptr == AnimInstance) return;
+    
 
     AnimInstance->PlayBasicAttackTwoMongtage();
 
@@ -600,26 +580,22 @@ void AH_EnemyCharacter::ThirdBasicAttack()
 
 void AH_EnemyCharacter::RightMoveAnim()
 {
-    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-    if (nullptr == AnimInstance) return;
-
+   
     AnimInstance->PlayMovingRightMongtage();
 
 }
 
 void AH_EnemyCharacter::LeftMoveAnim()
 {
-    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-    if (nullptr == AnimInstance) return;
-
+    
     AnimInstance->PlayMovingLeftMongtage();
 
 }
 
 void AH_EnemyCharacter::ForwardMoveAnim()
 {
-    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-    if (nullptr == AnimInstance) return;
+    
+  
 
     AnimInstance->PlayMovingForwardMontage();
 
@@ -627,24 +603,20 @@ void AH_EnemyCharacter::ForwardMoveAnim()
 
 void AH_EnemyCharacter::BackwardMoveAnim()
 {
-    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-    if (nullptr == AnimInstance) return;
-
+   
     AnimInstance->PlayMovingBackwardMontage();
 
 }
 
 void AH_EnemyCharacter::IdleAnim()
 {
-    auto AnimInstance = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
-    if (nullptr == AnimInstance) return;
-
+   
     AnimInstance->PlayMovingIdleMongtage();
 
 }
 
 
-void AH_EnemyCharacter::Hit(float value) {
+void AH_EnemyCharacter::Hit(AC_HitBox* box, float value) {
 
     hp -= value;
     if (hp <= 0) {
