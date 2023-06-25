@@ -198,3 +198,8 @@ void UH_AnimInst::PlayDyingMongtage()
         Montage_Play(DyingMongtage, 1.0f);
     }
 }
+
+void UH_AnimInst::AnimNotify_basicOneAttack()
+{
+    attNotify.Broadcast();
+}
