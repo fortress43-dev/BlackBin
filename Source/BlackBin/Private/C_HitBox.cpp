@@ -65,8 +65,9 @@ void AC_HitBox::NotifyActorBeginOverlap(AActor* OtherActor)
 				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Fx, OtherActor->GetActorLocation() + randVec);
 				UGameplayStatics::PlaySoundAtLocation(GetWorld(), hitsound, GetActorLocation() + randVec, FMath::FRandRange(.3, .4));
 				UGameplayStatics::SetGlobalTimeDilation(GetWorld(), slowmotion);
+				if (IsBrocken)
+				Destroy();
 			}
-
 		}
 	}
 }

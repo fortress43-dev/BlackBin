@@ -45,7 +45,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-    virtual void Hit(float value) override;
+    virtual void Hit(AC_HitBox* box, float value) override;
 public:
     class ASproutBossPCharacter* player;
 
@@ -66,6 +66,8 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float dashSpeed;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        float dashTime = 2000;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
         float bossStanceMode = 1600.0f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -110,8 +112,6 @@ public:
     void ForwardMoveAnim();
     void BackwardMoveAnim();
     void IdleAnim();
-    void CheckJump();
-    void CheckSAttack();
     void DyingMotion();
     //void ChangeState(EBossMovingState NewState);
     //void TimerEvent();
@@ -123,6 +123,7 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
     class UStaticMeshComponent* meshComp;
 
+    class UH_AnimInst* AnimInstance;
     //나중에 백스텝 한번에 할떄 쓰기
     /*UFUNCTION()
     void AnimEnded(UAnimMontage* Montage, bool bInterrupted);
@@ -158,6 +159,8 @@ private:
     bool isAttackingThree = false;
     bool isAttackingStrong = false;
 
+    UFUNCTION()
+		void OnAnimeMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 };
 
 
