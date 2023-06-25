@@ -20,6 +20,7 @@
 #include "DebugMessages.h"
 #include <Engine/SkeletalMeshSocket.h>
 #include <Components/SplineMeshComponent.h>
+#include "D_OnGameWidget.h"
 // Sets default values
 AC_Player::AC_Player()
 {
@@ -37,7 +38,9 @@ AC_Player::AC_Player()
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
-	barriersound = LoadObject<USoundBase>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/CSK/Sound/Snd_BarrierS.Snd_BarrierS'"));
+	barrierSound = LoadObject<USoundBase>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/CSK/Sound/Snd_BarrierS.Snd_BarrierS'"));
+	arrowSound = LoadObject<USoundBase>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/CSK/Sound/Snd_Swing0.Snd_Swing0'"));
+	chargingSound = LoadObject<USoundBase>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/CSK/Sound/Snd_Charging.Snd_Charging'"));
 	static ConstructorHelpers::FClassFinder<AC_Barrier> BarrierObject(TEXT("/Script/Engine.Blueprint'/Game/DKW/Blueprints/BP_Barrier.BP_Barrier_C'"));
 	if (BarrierObject.Succeeded())
 	{
@@ -516,6 +519,7 @@ void AC_Player::ArrowCheck()
 				Arrow->dmg = 6 + gageArrow / 20;
 				Arrow->lifeTime = 100;
 			}
+
 			GetCharacterMovement()->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
 			const FRotator YawRotation(0, rotator.Yaw, 0);
 			// get forward vector
@@ -550,6 +554,7 @@ void AC_Player::ArrowAttack()
 		{
 			BowStringComp2->SetEndPosition(FVector(0));
 		}
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), arrowSound, GetActorLocation(), .4);
 		StateReset();
 		gageArrow = 0;
 	}
@@ -559,6 +564,11 @@ void AC_Player::Roll()
 {
 	if (Controller != nullptr && (State == PLAYERSTATE::MOVEMENT || State == PLAYERSTATE::ATTACK || State == PLAYERSTATE::POWERATTACK) )
 	{
+		if (AnimIns->Montage_IsPlaying(AnimIns->GetCurrentActiveMontage()))
+		{
+			IsDoState = true;
+			AnimIns->Montage_Stop(0, GetCurrentMontage());
+		}
 		AnimIns->Montage_Play(RollMontage, 1.0f);
 		//boxComp->SetCollisionProfileName(TEXT("NoCollision"));
 		State = PLAYERSTATE::ROLL;
@@ -716,7 +726,7 @@ void AC_Player::BarrierStart()
 		}
 		AnimIns->IsBarrier = true;
 		zoomTarget = 370.f;
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), barriersound, GetActorLocation(), .4);
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), barrierSound, GetActorLocation(), .4);
 	}
 }
 void AC_Player::BarrierEnd()
@@ -923,6 +933,7 @@ void AC_Player::StatePowerCharging()
 			Charging->ActivateSystem();
 			Charging->ResetSystem();
 		}
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), chargingSound, GetActorLocation(), .4);
 		Statestep = 1;
 	}
 }
@@ -957,10 +968,15 @@ void AC_Player::StateReset()
 
 void AC_Player::Hit(AC_HitBox* box, float value)
 {
+	UD_OnGameWidget* widget = Cast<UD_OnGameWidget>(UGameplayStatics::GetActorOfClass(GetWorld(), UD_OnGameWidget::StaticClass()));
 	if (Barrier != nullptr)
 	{
 		BarrierShield -= 10;
 		value = FMath::Max(value - BarrierShield, 0);
+		if (widget)
+		{
+			widget->SetBarrierHpBar(BarrierShield);
+		}
 		if (BarrierShield > 0)
 		{
 			FVector playvec = FRotator(0, GetActorRotation().Yaw, 0).Vector();
@@ -981,6 +997,10 @@ void AC_Player::Hit(AC_HitBox* box, float value)
 	if (value > 0)
 	{
 		Super::Hit(box, value);
+		if (widget)
+		{
+			widget->SetPlayerHpBar(hp);
+		}
 		StateReset();
 		if (AnimIns->Montage_IsPlaying(AnimIns->GetCurrentActiveMontage()))
 		{

@@ -76,3 +76,8 @@ DerivedDataCache/*
 
 # MegaScanFiles
 Content/Megascans/*
+Content/HSH/SoundAsset/slide-click.uasset
+Content/HSH/SoundAsset/generated_swing.uasset
+Content/HSH/SoundAsset/dying-monster.uasset
+Content/HSH/SoundAsset/cyber-punch-01.uasset
+Content/HSH/BluePrint/dying-monster.uasset
