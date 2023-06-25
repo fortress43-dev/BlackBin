@@ -38,7 +38,9 @@ AC_Player::AC_Player()
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
-	barriersound = LoadObject<USoundBase>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/CSK/Sound/Snd_BarrierS.Snd_BarrierS'"));
+	barrierSound = LoadObject<USoundBase>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/CSK/Sound/Snd_BarrierS.Snd_BarrierS'"));
+	arrowSound = LoadObject<USoundBase>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/CSK/Sound/Snd_Swing0.Snd_Swing0'"));
+	chargingSound = LoadObject<USoundBase>(nullptr, TEXT("/Script/Engine.SoundWave'/Game/CSK/Sound/Snd_Charging.Snd_Charging'"));
 	static ConstructorHelpers::FClassFinder<AC_Barrier> BarrierObject(TEXT("/Script/Engine.Blueprint'/Game/DKW/Blueprints/BP_Barrier.BP_Barrier_C'"));
 	if (BarrierObject.Succeeded())
 	{
@@ -517,6 +519,7 @@ void AC_Player::ArrowCheck()
 				Arrow->dmg = 6 + gageArrow / 20;
 				Arrow->lifeTime = 100;
 			}
+
 			GetCharacterMovement()->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
 			const FRotator YawRotation(0, rotator.Yaw, 0);
 			// get forward vector
@@ -551,6 +554,7 @@ void AC_Player::ArrowAttack()
 		{
 			BowStringComp2->SetEndPosition(FVector(0));
 		}
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), arrowSound, GetActorLocation(), .4);
 		StateReset();
 		gageArrow = 0;
 	}
@@ -560,6 +564,11 @@ void AC_Player::Roll()
 {
 	if (Controller != nullptr && (State == PLAYERSTATE::MOVEMENT || State == PLAYERSTATE::ATTACK || State == PLAYERSTATE::POWERATTACK) )
 	{
+		if (AnimIns->Montage_IsPlaying(AnimIns->GetCurrentActiveMontage()))
+		{
+			IsDoState = true;
+			AnimIns->Montage_Stop(0, GetCurrentMontage());
+		}
 		AnimIns->Montage_Play(RollMontage, 1.0f);
 		//boxComp->SetCollisionProfileName(TEXT("NoCollision"));
 		State = PLAYERSTATE::ROLL;
@@ -717,7 +726,7 @@ void AC_Player::BarrierStart()
 		}
 		AnimIns->IsBarrier = true;
 		zoomTarget = 370.f;
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), barriersound, GetActorLocation(), .4);
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), barrierSound, GetActorLocation(), .4);
 	}
 }
 void AC_Player::BarrierEnd()
@@ -924,6 +933,7 @@ void AC_Player::StatePowerCharging()
 			Charging->ActivateSystem();
 			Charging->ResetSystem();
 		}
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), chargingSound, GetActorLocation(), .4);
 		Statestep = 1;
 	}
 }
