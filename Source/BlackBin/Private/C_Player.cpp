@@ -18,6 +18,8 @@
 #include "NiagaraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "DebugMessages.h"
+#include <Engine/SkeletalMeshSocket.h>
+#include <Components/SplineMeshComponent.h>
 // Sets default values
 AC_Player::AC_Player()
 {
@@ -53,6 +55,7 @@ AC_Player::AC_Player()
 	{
 		ArrowClass = (UClass*)ArrowObject.Object->GeneratedClass;
 	}
+
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
 	GetCharacterMovement()->JumpZVelocity = 2000.f;
@@ -98,6 +101,28 @@ void AC_Player::PostInitializeComponents()
 			if (NiagaraComponent->GetName() == "Charge")
 			{
 				Charging = NiagaraComponent;
+			}
+			if (NiagaraComponent->GetName() == "ArrowCharger")
+			{
+				ArrowCharging = NiagaraComponent;
+			}
+		}
+		if (UStaticMeshComponent* StaffComponent = Cast<UStaticMeshComponent>(Component))
+		{
+			if (StaffComponent->GetName() == "Staff")
+			{
+				StaffComp = StaffComponent;
+			}
+		}
+		if (USplineMeshComponent* Spline = Cast<USplineMeshComponent>(Component))
+		{
+			if (Spline->GetName() == "BowString1")
+			{
+				BowStringComp1 = Spline;
+			}
+			else if (Spline->GetName() == "BowString2")
+			{
+				BowStringComp2 = Spline;
 			}
 		}
 	}
@@ -273,7 +298,7 @@ void AC_Player::Tick(float DeltaTime)
 		{
 			StateReset();
 		}
-		else
+		else if (State != PLAYERSTATE::ARROW)
 		{
 			AddMovementInput(StateDirectionX, StateVector.Y);
 			AddMovementInput(StateDirectionY, StateVector.X);
@@ -316,6 +341,7 @@ void AC_Player::SetupPlayerInputComponent(class UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(BarrierAction, ETriggerEvent::Completed, this, &AC_Player::BarrierEnd);
 
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AC_Player::Attack);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AC_Player::ArrowCheck);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AC_Player::ArrowAttack);
 
 		EnhancedInputComponent->BindAction(PowerAttackAction, ETriggerEvent::Triggered, this, &AC_Player::PowerAttackStart);
@@ -338,6 +364,8 @@ void AC_Player::Move(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
+	printf("%f", MovementVector.X);
+	printf("%f", MovementVector.Y);
 	if (Controller != nullptr)
 	{ 
 		if(State == PLAYERSTATE::MOVEMENT)
@@ -361,6 +389,12 @@ void AC_Player::Move(const FInputActionValue& Value)
 			StateDirectionX = ForwardDirection;
 			StateDirectionY = RightDirection;
 			StateVector		= MovementVector;
+		}
+		else if (State == PLAYERSTATE::ARROW)
+		{
+			AddMovementInput(StateDirectionX, MovementVector.Y);
+			AddMovementInput(StateDirectionY, MovementVector.X);
+			StateVector = MovementVector;
 		}
 	}
 	PlayerVector = MovementVector;
@@ -405,78 +439,119 @@ void AC_Player::Attack()
 {
 	if (Controller != nullptr)
 	{
-		if (State == PLAYERSTATE::ATTACK)
+		if (!IsFocus)
 		{
-			IsCheckCombo = true;
+			if (State == PLAYERSTATE::ATTACK)
+			{
+				IsCheckCombo = true;
+			}
+			if (State == PLAYERSTATE::MOVEMENT)
+			{
+				//============================================================
+				if (!(AnimIns->Montage_IsPlaying(AttackMontage)))
+				{
+					AnimIns->Montage_Play(AttackMontage, 1.0f);
+				}
+
+				attackIndex = 1;
+				State = PLAYERSTATE::ATTACK;
+
+				//===============================================================
+
+
+
+
+
+				FVector2D MovementVector = FVector2D(0, 1);
+
+				const FRotator Rotation = Controller->GetControlRotation();
+				const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+				// get forward vector
+				const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+				// get right vector 
+				const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+				RotationTarget = YawRotation;
+
+				// add movement 
+				AddMovementInput(ForwardDirection, MovementVector.Y);
+				AddMovementInput(RightDirection, MovementVector.X);
+
+				bCancelable = false;
+				StateDirectionX = ForwardDirection;
+				StateDirectionY = RightDirection;
+				UE_LOG(LogTemp, Warning, TEXT("x		: %d"), StateDirectionX);
+				UE_LOG(LogTemp, Warning, TEXT("y		: %d"), StateDirectionY);
+				StateVector = FVector2D(0, 0);
+				Statestep = 0;
+				StateTimer = 0;
+			}
 		}
+	}
+}
+void AC_Player::ArrowCheck()
+{
+	if (Controller != nullptr && IsFocus)
+	{
 		if (State == PLAYERSTATE::MOVEMENT)
 		{
-			//============================================================
-			if (!(AnimIns->Montage_IsPlaying(AttackMontage)))
+			State = PLAYERSTATE::ARROW;
+			
+			if (StaffComp)
 			{
-				AnimIns->Montage_Play(AttackMontage, 1.0f);
+				StaffComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+				StaffComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, FName("hand_lSocket"));
 			}
 
-			attackIndex = 1;
-			State = PLAYERSTATE::ATTACK;
-
-			//===============================================================
-
-
-
-
-
-			FVector2D MovementVector = FVector2D(0, 1);
-
-			const FRotator Rotation = Controller->GetControlRotation();
-			const FRotator YawRotation(0, Rotation.Yaw, 0);
-
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			FRotator rotator = Controller->GetControlRotation();
+			FVector  SpawnLocation = StaffComp->GetComponentLocation();
+			Arrow = GetWorld()->SpawnActor<AC_Arrow>(ArrowClass, SpawnLocation, rotator, SpawnParams);
+			if (Arrow)
+			{
+				Arrow->team = 0;
+				Arrow->dmg = 6 + gageArrow / 20;
+				Arrow->lifeTime = 100;
+			}
+			GetCharacterMovement()->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
+			const FRotator YawRotation(0, rotator.Yaw, 0);
 			// get forward vector
 			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 			// get right vector 
 			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-			RotationTarget = YawRotation;
-
-			// add movement 
-			AddMovementInput(ForwardDirection, MovementVector.Y);
-			AddMovementInput(RightDirection, MovementVector.X);
-
-			bCancelable = false;
 			StateDirectionX = ForwardDirection;
 			StateDirectionY = RightDirection;
-			UE_LOG(LogTemp, Warning, TEXT("x		: %d"), StateDirectionX);
-			UE_LOG(LogTemp, Warning, TEXT("y		: %d"), StateDirectionY);
-			StateVector = FVector2D(0, 0);
-			Statestep = 0;
-			StateTimer = 0;
-		}
-		else if (State == PLAYERSTATE::ARROW)
-		{	
-			gageArrow = FMath::Clamp(gageArrow + .5, 0, 100); // ...at this rotation rate
 		}
 	}
 }
-
 void AC_Player::ArrowAttack()
 {
 	if (State == PLAYERSTATE::ARROW)
 	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		FRotator rotator = Controller->GetControlRotation();
-		FVector  SpawnLocation = GetActorLocation();
-		FVector	 addLoc = GetActorRightVector() * 50;
-		rotator.Yaw += 5;
-		SpawnLocation.Z -= 50.f;
-		AC_Arrow* Arrow = GetWorld()->SpawnActor<AC_Arrow>(ArrowClass, SpawnLocation + addLoc, rotator, SpawnParams);
 		if (Arrow)
 		{
-			Arrow->dmg = 6 + gageArrow/20;
-			Arrow->lifeTime = 100;
+			Arrow->ativate = true;
 			Arrow->boxComp->SetCollisionProfileName(TEXT("HitBox"));
 		}
+		if (StaffComp && GetCharacterMovement()->Velocity.Z == 0)
+		{
+			StaffComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+			StaffComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, FName("hand_rSocket"));
+		}
+		if (BowStringComp1)
+		{
+			BowStringComp1->SetEndPosition(FVector(0));
+		}
+		if (BowStringComp2)
+		{
+			BowStringComp2->SetEndPosition(FVector(0));
+		}
+		StateReset();
+		gageArrow = 0;
 	}
 }
 
@@ -514,8 +589,8 @@ void AC_Player::ArrowStart()
 	if (Controller != nullptr)
 	{
 		zoomTarget = 200.0f;
-		FollowCamera->SetRelativeLocation(FVector(0.f, 100.f, 0.f));
-
+		FollowCamera->SetRelativeLocation(FVector(66.f, 100.f, 66.f));
+		IsFocus = true;
 	}
 }
 void AC_Player::ArrowEnd()
@@ -523,7 +598,30 @@ void AC_Player::ArrowEnd()
 	if (Controller != nullptr)
 	{
 		zoomTarget = 400.0f;
-		FollowCamera->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
+		FollowCamera->SetRelativeLocation(FVector(66.f, 0.f, 82.f));
+		gageArrow = 0;
+		IsFocus = false;
+		if (Arrow)
+		{
+			Arrow->Destroy();
+		}
+		if (StaffComp)
+		{
+			StaffComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+			StaffComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, FName("hand_rSocket"));
+		}
+		if (State == PLAYERSTATE::ARROW)
+		{
+			StateReset();
+		}
+		if (BowStringComp1)
+		{
+			BowStringComp1->SetEndPosition(FVector(0));
+		}
+		if (BowStringComp2)
+		{
+			BowStringComp2->SetEndPosition(FVector(0));
+		}
 	}
 }
 
@@ -627,6 +725,7 @@ void AC_Player::BarrierEnd()
 	{
 		if (Barrier)
 		{
+			Barrier->SetActorScale3D(FVector(0.1));
 			Barrier->IsBoom = true;
 		}
 		State = PLAYERSTATE::MOVEMENT;
@@ -745,24 +844,47 @@ void AC_Player::StateBarrier()
 }
 void AC_Player::StateArrow()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 0;
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 700.0f, 0.0f); // ...at this rotation rate
-
-	FVector2D MovementVector = FVector2D(Controller->GetControlRotation().Vector());
-
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0, Rotation.Yaw, 0);
+	FVector targetVector = FollowCamera->GetComponentRotation().Vector()*500 + GetActorRightVector()*100;
+	FRotator targetRotation = FRotator(0, targetVector.Rotation().Yaw, 0);
 
 	// get forward vector
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	const FVector ForwardDirection = FRotationMatrix(targetRotation).GetUnitAxis(EAxis::X);
 
 	// get right vector 
-	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	const FVector RightDirection = FRotationMatrix(targetRotation).GetUnitAxis(EAxis::Y);
 
 	StateDirectionX = ForwardDirection;
 	StateDirectionY = RightDirection;
-	StateVector = FVector2D(FVector::RightVector);
 
+	gageArrow = FMath::Clamp(gageArrow + 1, 0, 100); // ...at this rotation rate
+	SetActorRotation(targetRotation);
+	if (Arrow)
+	{
+		Arrow->SetActorLocation(GetMesh()->GetSocketByName(FName("hand_lSocket"))->GetSocketLocation(GetMesh()));
+		FVector dir = GetMesh()->GetSocketByName(FName("hand_lSocket"))->GetSocketLocation(GetMesh()) - GetMesh()->GetSocketByName(FName("hand_rSocket"))->GetSocketLocation(GetMesh());
+		Arrow->SetActorRotation(dir.Rotation());
+		if (gageArrow == 100 && Statestep == 0)
+		{
+			print("Charger1")
+			if (ArrowCharging)
+			{
+				print("Charger2")
+				ArrowCharging->ActivateSystem();
+				ArrowCharging->ResetSystem();
+			}
+			Statestep = 1;
+		}
+	}
+	if (BowStringComp1)
+	{
+		FVector EndLocalPos = BowStringComp1->GetComponentTransform().InverseTransformPosition(GetMesh()->GetSocketByName(FName("hand_rSocket"))->GetSocketLocation(GetMesh()));
+		BowStringComp1->SetEndPosition(EndLocalPos);
+	}
+	if (BowStringComp2)
+	{
+		FVector EndLocalPos = BowStringComp2->GetComponentTransform().InverseTransformPosition(GetMesh()->GetSocketByName(FName("hand_rSocket"))->GetSocketLocation(GetMesh()));
+		BowStringComp2->SetEndPosition(EndLocalPos);
+	}
 }
 void AC_Player::StatePowerCharging()
 {
@@ -839,6 +961,22 @@ void AC_Player::Hit(AC_HitBox* box, float value)
 	{
 		BarrierShield -= 10;
 		value = FMath::Max(value - BarrierShield, 0);
+		if (BarrierShield > 0)
+		{
+			FVector playvec = FRotator(0, GetActorRotation().Yaw, 0).Vector();
+			StateVector = FVector2D(0);
+			FVector GetVec = box->GetActorLocation() - GetActorLocation();
+			GetVec.Normalize();
+			FVector2D dir = FVector2D(GetVec.X, GetVec.Y);
+			FVector SetVec = FVector(dir, 0);
+			FRotator SetRot = FRotator(0, SetVec.Rotation().Yaw, 0);
+			printf("%d %d", dir.X, dir.Y);
+			if (FVector::DotProduct(SetVec, playvec) < 0)
+			{
+				GetCharacterMovement()->Velocity.X = 1000 * dir.X;
+				GetCharacterMovement()->Velocity.Y = 1000 * dir.Y;
+			}
+		}
 	}
 	if (value > 0)
 	{

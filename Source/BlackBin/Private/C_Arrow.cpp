@@ -14,33 +14,27 @@ AC_Arrow::AC_Arrow()
 void AC_Arrow::BeginPlay()
 {
 	Super::BeginPlay();
-
+	IsBrocken = true;
 }
 
 // Called every frame
 void AC_Arrow::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
-	FVector ForwardVector = GetActorRotation().Vector(); // 회전 벡터 계산
+	if (ativate)
+	{
+		Super::Tick(DeltaTime);
+		FVector ForwardVector = GetActorRotation().Vector(); // 회전 벡터 계산
 
-	// 이동할 거리를 적절히 조절하여 ForwardVector를 사용하여 이동
-	FVector NewLocation = GetActorLocation() + ForwardVector * 20.f;
-	SetActorLocation(NewLocation);
+		// 이동할 거리를 적절히 조절하여 ForwardVector를 사용하여 이동
+		FVector NewLocation = GetActorLocation() + ForwardVector * 3000.f *DeltaTime;
+		SetActorLocation(NewLocation);
+	}
 }
 
 void AC_Arrow::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	if (OtherActor->IsA<AC_Mob>())
+	if (ativate)
 	{
-		AC_Mob* MobActor = Cast<AC_Mob>(OtherActor);
-		if (MobActor)
-		{
-			if (MobActor->team != team)
-			{
-				MobActor->Hit(float(dmg));
-				Destroy();
-			}
-
-		}
+		Super::NotifyActorBeginOverlap(OtherActor);
 	}
 }

@@ -58,14 +58,16 @@ void AC_HitBox::NotifyActorBeginOverlap(AActor* OtherActor)
 			if (MobActor->team != team)
 			{
 				printf("HIT : %d", dmg);
+
 				MobActor->Hit(this, float(dmg));
 				FVector randVec = FVector(FMath::RandRange(-50, 50), FMath::RandRange(-50, 50), FMath::RandRange(-50, 50));
 				if (Fx)
 				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Fx, OtherActor->GetActorLocation() + randVec);
 				UGameplayStatics::PlaySoundAtLocation(GetWorld(), hitsound, GetActorLocation() + randVec, FMath::FRandRange(.3, .4));
 				UGameplayStatics::SetGlobalTimeDilation(GetWorld(), slowmotion);
+				if (IsBrocken)
+				Destroy();
 			}
-
 		}
 	}
 }

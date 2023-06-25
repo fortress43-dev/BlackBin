@@ -12,7 +12,8 @@ class BLACKBIN_API AC_Mob : public ACharacter
 	GENERATED_BODY()
 
 public:
-	float max_hp	= 600;
+	UPROPERTY(EditAnywhere)
+	float max_hp	= 100;
 	int	hp			= max_hp;
 	// Sets default values for this character's properties
 	UPROPERTY(EditAnywhere)

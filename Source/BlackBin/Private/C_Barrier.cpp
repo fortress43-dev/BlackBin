@@ -28,7 +28,7 @@ void AC_Barrier::Tick(float DeltaTime)
 	if (IsBoom)
 	{
 		FVector currentScale = GetActorScale3D();
-		FVector newScale = currentScale * (1.00 + DeltaTime*5);
+		FVector newScale = currentScale * (1.00 + DeltaTime*50);
 		SetActorScale3D(newScale);
 		if (newScale.X >= 9.)
 		{
