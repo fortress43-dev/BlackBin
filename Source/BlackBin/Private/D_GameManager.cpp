@@ -7,6 +7,8 @@
 #include "MainMenuWidget.h"
 #include "DebugMessages.h"
 #include <UMG/Public/Components/CanvasPanel.h>
+#include <MediaAssets/Public/MediaPlayer.h>
+#include "DebugMessages.h"
 
 
 // <UI 표시조건>
@@ -35,20 +37,27 @@ AD_GameManager::AD_GameManager()
 	// 게임을 처음 시작할 때 시네마들을 차례로 저장하고 있는 위젯
 	// 후에 시네마틱들을 플레이하는 용도로 사용할 계획
 	ConstructorHelpers::FClassFinder<UD_StartStoryWidget> tmpStoryWidget(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/DKW/UI/BP_StoryStartWidget.BP_StoryStartWidget_C'"));
-	if (tmpStoryWidget.Succeeded()) {
-		startStoryWidgetSource = tmpStoryWidget.Class;
-	}
+	if (tmpStoryWidget.Succeeded()) {startStoryWidgetSource = tmpStoryWidget.Class;}
 
 	// #OnGameWidget
 	// 게임 내의 상호작용에 대한 안내
 	// 보스전 UI를 함께 포함한다/ 패널로 분리하여 관리
 	ConstructorHelpers::FClassFinder<UD_OnGameWidget> tmpOnGameWidget(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/DKW/UI/BP_OnGameWidget.BP_OnGameWidget_C'"));
-	if (tmpOnGameWidget.Succeeded()) {
-		onGameWidgetSource = tmpOnGameWidget.Class;
-	}
+	if (tmpOnGameWidget.Succeeded()) { onGameWidgetSource = tmpOnGameWidget.Class; }
+
+	//#OpeningMediaPlayer
+	ConstructorHelpers::FObjectFinder<UMediaPlayer> tmpMediaPlayer(TEXT("/Script/MediaAssets.MediaPlayer'/Game/DKW/UI/UIElement/OnGameCinema.OnGameCinema'"));
+	if (tmpMediaPlayer.Succeeded()) { openingMediaPlayer = tmpMediaPlayer.Object; }
 
 #pragma endregion
 	
+#pragma region BattleUI value Setup
+	
+
+
+
+#pragma endregion
+
 }
 
 // Called when the game starts or when spawned
@@ -78,12 +87,16 @@ void AD_GameManager::BeginPlay()
 			ShowOnGameWidget(0);
 		}
 	}
+
+	// close widget when cinema is ended
+	openingMediaPlayer->OnEndReached.AddDynamic(this, &AD_GameManager::HideStoryWidget);
 }
 
 // Called every frame
 void AD_GameManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 }
 
 #pragma region Show Widgets
@@ -106,6 +119,8 @@ void AD_GameManager::ShowStoryWidget(int zOrder = 0) {
 	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 	startStoryWidget = CreateWidget<UD_StartStoryWidget>(GetWorld(), startStoryWidgetSource);
 	startStoryWidget->AddToViewport(zOrder);
+
+
 }
 
 //ShowOnGameWidget
@@ -116,6 +131,11 @@ void AD_GameManager::ShowOnGameWidget(int zOrder = 0) {
 	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 	onGameWidget = CreateWidget<UD_OnGameWidget>(GetWorld(), onGameWidgetSource);
 	onGameWidget->AddToViewport(zOrder);
+	
+	// update widget's information
+	onGameWidget->bossMaxHp	   = bossHp;
+	onGameWidget->playerMaxHp  = playerHp;
+	onGameWidget->barrierMaxHp = barrierHp;
 	
 }
 
@@ -152,6 +172,14 @@ void AD_GameManager::ShowGuideText(EGuideText guide) {
 // 사용위젯 : onGameWidget
 void AD_GameManager::SetBattlePanelVisibility(bool isVisible) {
 	// onGameWidget의 battle Panel 을 활성화시킨다
+	//if (onGameWidget) {
+	//	if (isVisible) {
+	//		onGameWidget->PanelBattle->Visibility = ESlateVisibility::Visible;
+	//	}
+	//	else{
+	//		onGameWidget->PanelBattle->Visibility = ESlateVisibility::Hidden;
+	//	}
+	//}
 	/*if (onGameWidget) {
 		if (isVisible) {
 			onGameWidget->PanelBattle->Visibility = ESlateVisibility::Visible;
@@ -164,3 +192,7 @@ void AD_GameManager::SetBattlePanelVisibility(bool isVisible) {
 
 #pragma endregion
 
+// Hide StoryWidget
+void AD_GameManager::HideStoryWidget() {
+	startStoryWidget->RemoveFromParent();
+}

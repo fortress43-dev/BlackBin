@@ -992,7 +992,11 @@ void AC_Player::Hit(AC_HitBox* box, float value)
 
 		FVector playvec = FRotator(0, GetActorRotation().Yaw, 0).Vector();
 		StateVector = FVector2D(0);
-		FVector GetVec = box->GetActorLocation() - GetActorLocation();
+		FVector GetVec;
+		if (box->Host)
+			GetVec = box->Host->GetActorLocation() - GetActorLocation();
+		else
+			GetVec = box->GetActorLocation() - GetActorLocation();
 		GetVec.Normalize();
 		FVector2D dir = FVector2D(GetVec.X, GetVec.Y);
 		GetCharacterMovement()->Velocity.Z = 300 * dir.X;

@@ -8,7 +8,7 @@
 
 UENUM()
 enum EGuideText
-{	
+{
 	Barrier,
 };
 
@@ -30,14 +30,24 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
+#pragma region Max Hp Settings
+	UPROPERTY(EditAnywhere, Category = "DefaultSetting")
+	int bossHp    = 100;
+	UPROPERTY(EditAnywhere, Category = "DefaultSetting")
+	int playerHp  = 100;
+	UPROPERTY(EditAnywhere, Category = "DefaultSetting")
+	int barrierHp = 100;
+#pragma endregion
+
+
+
+
 #pragma region Widgets
 	//SourceClasses
 	UPROPERTY(EditAnywhere, Category = "Widgets")
 	TSubclassOf<class UMainMenuWidget> mainMenuWidgetSource;
-	
 	UPROPERTY(EditAnywhere, Category = "Widgets")
 	TSubclassOf<class UD_StartStoryWidget> startStoryWidgetSource;
-	
 	UPROPERTY(EditAnywhere, Category = "Widgets")
 	TSubclassOf<class UD_OnGameWidget> onGameWidgetSource;
 
@@ -49,9 +59,12 @@ public:
 	UPROPERTY()
 	class UD_OnGameWidget* onGameWidget = nullptr;
 	
-	
-
+	//MediaPlayer
+	UPROPERTY(EditAnywhere, Category = "MediaPlayers")
+	class UMediaPlayer* openingMediaPlayer;
 #pragma endregion
+
+
 
 #pragma region MapNames
 	UPROPERTY(VisibleAnywhere, Category = "Maps Names")
@@ -70,6 +83,7 @@ public:
 	void ShowGuideText(EGuideText);
 	void SetBattlePanelVisibility(bool);
 
+	void HideStoryWidget();
 #pragma endregion
 
 
