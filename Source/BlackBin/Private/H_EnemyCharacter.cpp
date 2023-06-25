@@ -543,8 +543,9 @@ void AH_EnemyCharacter::SpawnHitBox()
         if (Hitbox)
         {
             Hitbox->Host = this;
+            Hitbox->IsBrocken = true;
             Hitbox->dmg = 10;
-            Hitbox->lifeTime = 10;
+            Hitbox->lifeTime = 1;
             Hitbox->team = team;
             Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
         }
