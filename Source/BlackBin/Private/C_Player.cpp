@@ -20,6 +20,7 @@
 #include "DebugMessages.h"
 #include <Engine/SkeletalMeshSocket.h>
 #include <Components/SplineMeshComponent.h>
+#include "D_OnGameWidget.h"
 // Sets default values
 AC_Player::AC_Player()
 {
@@ -957,10 +958,15 @@ void AC_Player::StateReset()
 
 void AC_Player::Hit(AC_HitBox* box, float value)
 {
+	UD_OnGameWidget* widget = Cast<UD_OnGameWidget>(UGameplayStatics::GetActorOfClass(GetWorld(), UD_OnGameWidget::StaticClass()));
 	if (Barrier != nullptr)
 	{
 		BarrierShield -= 10;
 		value = FMath::Max(value - BarrierShield, 0);
+		if (widget)
+		{
+			widget->SetBarrierHpBar(BarrierShield);
+		}
 		if (BarrierShield > 0)
 		{
 			FVector playvec = FRotator(0, GetActorRotation().Yaw, 0).Vector();
@@ -981,6 +987,10 @@ void AC_Player::Hit(AC_HitBox* box, float value)
 	if (value > 0)
 	{
 		Super::Hit(box, value);
+		if (widget)
+		{
+			widget->SetPlayerHpBar(hp);
+		}
 		StateReset();
 		if (AnimIns->Montage_IsPlaying(AnimIns->GetCurrentActiveMontage()))
 		{
