@@ -38,6 +38,12 @@ public:
 
 #pragma endregion
 
+#pragma region Effect
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UBackgroundBlur* BackgroundBlur;
+#pragma endregion
+
+
 
 #pragma region Functions
 	UFUNCTION()
@@ -48,6 +54,9 @@ public:
 
 	UFUNCTION()
 	void OnClickQuit();
+
+	UFUNCTION()
+	void OnWidgetHovered();
 
 #pragma endregion
 
