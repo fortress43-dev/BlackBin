@@ -551,7 +551,6 @@ void AH_EnemyCharacter::SpawnHitBox()
         //만약 히트박스가 소환됬다면
         if (Hitbox)
         {
-
             Hitbox->dmg = 10;
             Hitbox->lifeTime = 10;
             Hitbox->team = team;
