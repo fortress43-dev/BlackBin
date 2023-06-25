@@ -128,7 +128,6 @@ void AD_GameManager::ShowOnGameWidget(int zOrder = 0) {
 	// #FunctionDescribtion
 		// 마우스를 보이게 한다 
 		// Main Widget 을 viewport 에 띄운다
-	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 	onGameWidget = CreateWidget<UD_OnGameWidget>(GetWorld(), onGameWidgetSource);
 	onGameWidget->AddToViewport(zOrder);
 	
