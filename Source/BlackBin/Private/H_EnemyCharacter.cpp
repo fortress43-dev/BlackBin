@@ -92,7 +92,7 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
     dt = DeltaTime;
     ct += DeltaTime;
     ct2 += DeltaTime;
-    if (MoveState != EBossMovingState::Dash && MoveState != EBossMovingState::Dying && MoveState != EBossMovingState::SAttack && MoveState != EBossMovingState::Attacking && MoveState != EBossMovingState::BackStep && MoveState != EBossMovingState::Idle) {
+    if (MoveState != EBossMovingState::Dash && MoveState != EBossMovingState::Dying && MoveState != EBossMovingState::SAttack && MoveState != EBossMovingState::BasicOneAttack && MoveState != EBossMovingState::BasicTwoAttack && MoveState != EBossMovingState::BackStep && MoveState != EBossMovingState::Idle) {
         StateTimer += DeltaTime;
 
     }
