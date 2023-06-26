@@ -444,7 +444,7 @@ void AH_EnemyCharacter::Checking()
     else if (distance <= 300) {
         // if (animationFinished) {
         arrayState = { EBossMovingState::MovingBackward, EBossMovingState::Attacking,EBossMovingState::BasicOneAttack ,EBossMovingState::BasicTwoAttack, EBossMovingState::BackStep, EBossMovingState::Staying };
-        arrayWeight = { 0.1f, 0.3f, 0.2f, 0.2f, 0.1f, 0.1f };
+        arrayWeight = { 0.1f, 0.3f, 0.2f, 0.2f, 0.7f, 0.1f };
 
         MoveState = GetArrayWeight(arrayState, arrayWeight);
 
@@ -453,8 +453,7 @@ void AH_EnemyCharacter::Checking()
 
 
     printf("%d", MoveState);
-    ct2 = 0;
-    ct = 0;
+    StateTimer = 0;
 }
 
 
