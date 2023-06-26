@@ -92,7 +92,7 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
     dt = DeltaTime;
     ct += DeltaTime;
     ct2 += DeltaTime;
-    if (MoveState != EBossMovingState::Dash && MoveState != EBossMovingState::Dying && MoveState != EBossMovingState::SAttack && MoveState != EBossMovingState::Attacking && MoveState != EBossMovingState::BackStep) {
+    if (MoveState != EBossMovingState::Dash && MoveState != EBossMovingState::Dying && MoveState != EBossMovingState::SAttack && MoveState != EBossMovingState::Attacking && MoveState != EBossMovingState::BackStep && MoveState != EBossMovingState::Idle) {
         StateTimer += DeltaTime;
 
     }
@@ -404,9 +404,7 @@ void AH_EnemyCharacter::BackMove()
 {
    
     AnimInstance->PlayBackmoveMontage();
-    //점프 몽타주를 하고있는지 상태를 알고싶다
-    //만약 몽타주가 끝나면 스테이트를 바꾸고 싶다
-    //만약 몽타주가 끝나지 않았다면 끝날때까지 지금 스테이트를 유지하고 싶다
+    
 }
 
 
