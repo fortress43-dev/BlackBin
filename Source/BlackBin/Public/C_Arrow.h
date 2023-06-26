@@ -20,6 +20,7 @@ protected:
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 public:
 	// Called every frame
+	TObjectPtr<class UNiagaraSystem> ArrowFx;
 	bool ativate;
 	virtual void Tick(float DeltaTime) override;
 
