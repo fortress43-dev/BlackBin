@@ -52,7 +52,7 @@ AH_EnemyCharacter::AH_EnemyCharacter()
     dashSpeed = 700.0f; // Adjust the value as needed
 
     randomN = FMath::RandRange(1, 100);
-    ranTime = 4;
+    ranTime = FMath::RandRange(2, 5);
 
     //나중에 백스텝 한번에 할떄 쓰기
     /*AnimIns = Cast<UH_AnimInst>(GetMesh()->GetAnimInstance());
@@ -96,11 +96,11 @@ void AH_EnemyCharacter::Tick(float DeltaTime)
         StateTimer += DeltaTime;
 
     }
-    if (StateTimer > 2.f)
+    if (StateTimer > ranTime)
     {
 
         Checking();
-        StateTimer = -FMath::FRandRange(1.f, 3.f);
+        StateTimer = 0;
     }
     // Find the player character in the world
     ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(this, 0);
@@ -519,7 +519,7 @@ void AH_EnemyCharacter::SpawnHitBox()
     FRotator rotator = GetActorRotation();
 
     FVector SpawnLocation = GetActorLocation();
-    FVector addLoc = GetActorForwardVector() * 200;
+    FVector addLoc = GetActorForwardVector() * 100;
     SpawnLocation.Z -= 50.f;
 
 
@@ -541,9 +541,10 @@ void AH_EnemyCharacter::SpawnHitBox()
         if (Hitbox)
         {
             Hitbox->Host = this;
+            printf("Spawn");
             Hitbox->IsBrocken = true;
             Hitbox->dmg = 10;
-            Hitbox->lifeTime = 1;
+            Hitbox->lifeTime = 3;
             Hitbox->team = team;
             Hitbox->boxComp->SetCollisionProfileName(TEXT("HitBox"));
         }
